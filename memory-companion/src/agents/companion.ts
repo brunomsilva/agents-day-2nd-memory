@@ -1,11 +1,12 @@
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import { callable } from "agents";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import {
   streamText,
   generateText,
   convertToModelMessages,
-  stepCountIs
+  stepCountIs,
+  type LanguageModel
 } from "ai";
 import {
   buildCompanionPrompt,
@@ -113,11 +114,11 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   }
 
   async onChatMessage(_onFinish: unknown, _options?: OnChatMessageOptions) {
-    const kimi = createOpenAI({
+    const kimi = createAnthropic({
       apiKey: this.env.KIMI_API_KEY,
-      baseURL: "https://api.moonshot.ai/v1"
+      baseURL: "https://api.kimi.com/coding/v1"
     });
-    const model = kimi.chat("kimi-k2.6");
+    const model = kimi("kimi-for-coding");
 
     const lastMessage = this.messages[this.messages.length - 1];
     const userText =
@@ -251,7 +252,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   private async handleOnboardingMessage(
     userText: string,
-    model: ReturnType<ReturnType<typeof createOpenAI>>
+    model: LanguageModel
   ): Promise<Response> {
     const step = this.state.onboardingStep;
     const sys = buildOnboardingPrompt();
@@ -352,10 +353,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     }
   }
 
-  private async extractAndStoreMemory(
-    text: string,
-    model: ReturnType<ReturnType<typeof createOpenAI>>
-  ) {
+  private async extractAndStoreMemory(text: string, model: LanguageModel) {
     if (!text.trim()) return;
     await generateText({
       model,

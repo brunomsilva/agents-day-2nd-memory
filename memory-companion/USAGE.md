@@ -30,10 +30,31 @@ Worker (the Mia agent) runs in the same process via the Cloudflare vite plugin.
 State is stored in a local SQLite-backed Durable Object — it persists across
 restarts of `npm run dev` but lives in the local `.wrangler/` cache.
 
-## 3. First conversation — onboarding
+## 3. Interactive demo walkthrough
 
-The first time you connect, Mia walks you through five short steps. Just answer
-each prompt in the chat input.
+The fastest way to explore Memory Companion is the built-in demo page at
+**`/demo`**.
+
+Open http://localhost:5173/demo and click **Reset Demo** to seed fresh data.
+The demo walks you through eight steps:
+
+| Step                     | What you see                                                      |
+| ------------------------ | ----------------------------------------------------------------- |
+| **Welcome**              | Overview of Memory Companion and what each step covers            |
+| **Profile**              | Patient identity stored for anti-hallucination retrieval          |
+| **People**               | Family members, doctors, and caregivers with contact info         |
+| **Medications**          | Scheduled doses with dosage, instructions, and prescriber         |
+| **Routines & Reminders** | Daily activities and recurring alerts                             |
+| **Briefing**             | Trigger a live morning briefing and see what the patient receives |
+| **Summary**              | Caregiver dashboard with weekly mood, adherence, and events       |
+| **Chat**                 | Example grounded conversations and a link to the real chat        |
+
+Click **Reset Demo** at any time to wipe all data and start over.
+
+## 4. First conversation — onboarding
+
+If you prefer to set up manually, the first time you connect Mia walks you through
+five short steps. Just answer each prompt in the chat input.
 
 | Step | Mia asks                               | What she stores                                                                     |
 | ---- | -------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -45,10 +66,8 @@ each prompt in the chat input.
 
 After step 5, setup is marked complete and medication reminders are scheduled.
 
-> **Skipping onboarding for a demo.** Hit `POST /agents/companion-agent/<id>/seed`
-> (see §8) to drop in a demo profile (António in Lisbon, daughter Maria, family
-> doctor, one medication, one routine, one recent event) and jump straight to the
-> daily-use experience.
+> **Skipping onboarding for a demo.** You can also hit `POST /agents/companion-agent/<id>/seed`
+> (see §9) to drop in a demo profile via curl, or use the **`/demo`** page above.
 
 ## 4. Daily use
 

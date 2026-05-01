@@ -19,6 +19,20 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) to see your agent in action.
 
+### Interactive demo
+
+Navigate to **`/demo`** for a guided walkthrough of the full Memory Companion experience:
+
+- **Profile Setup** — see how patient identity is stored
+- **People Configuration** — family, doctors, caregivers
+- **Medications** — scheduled doses with reminders
+- **Routines & Reminders** — daily activities and alerts
+- **Morning Briefing** — trigger a live briefing notification
+- **Admin Summary** — caregiver dashboard with weekly insights
+- **Chat Preview** — example grounded conversations
+
+Click **Reset Demo** at any time to clear all data and re-seed with fresh demo content.
+
 Try these prompts to see the different features:
 
 - **"What's the weather in Paris?"** — server-side tool (runs automatically)
