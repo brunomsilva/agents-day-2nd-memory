@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Companion — Demo Walkthrough</title>
+  <style>
+    :root {
+      --bg: #f8f7fc;
+      --surface: #ffffff;
+      --text: #1a1035;
+      --text-secondary: #5e548e;
+      --accent: #7c3aed;
+      --accent-light: #f3e8ff;
+      --border: #e2dff4;
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(26, 16, 53, 0.08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+      color: white;
+      padding: 64px 24px 48px;
+      text-align: center;
+    }
+    header h1 { font-size: 2.5rem; margin: 0 0 12px; font-weight: 700; }
+    header p { font-size: 1.15rem; margin: 0; opacity: 0.92; max-width: 600px; margin-inline: auto; }
+    .container { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+    .step {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 48px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .step-header {
+      background: var(--accent-light);
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-right: 12px;
+    }
+    .step-header h2 { margin: 0; font-size: 1.35rem; display: inline; }
+    .step-body { padding: 32px; }
+    .step-body p { margin: 0 0 16px; color: var(--text-secondary); font-size: 1.05rem; }
+    .step-body p:last-child { margin-bottom: 0; }
+    .screenshot {
+      margin-top: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(26, 16, 53, 0.06);
+    }
+    .screenshot img { width: 100%; height: auto; display: block; }
+    .screenshot-caption {
+      background: #faf9ff;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+    .highlight-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+    }
+    .highlight-box strong { color: #92400e; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 720px) {
+      .two-col { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.75rem; }
+    }
+    footer {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Memory Companion</h1>
+  <p>A complete walkthrough of the demo experience — from an empty state through profile setup, people, medications, briefings, and the admin dashboard.</p>
+</header>
+
+<div class="container">
+
+  <!-- STEP 1 -->
+  <div class="step" id="step1">
+    <div class="step-header">
+      <span class="step-number">1</span>
+      <h2>Welcome — Start the Demo</h2>
+    </div>
+    <div class="step-body">
+      <p>Navigate to <strong>/demo</strong> to open the interactive walkthrough. The demo page introduces every feature with a step-by-step wizard. Clicking <strong>Reset Demo</strong> clears all existing data and seeds a fresh patient profile so you start from a clean, consistent state.</p>
+      <div class="screenshot">
+        <img src="01-demo-welcome.png" alt="Demo welcome screen">
+        <div class="screenshot-caption">The demo welcome page explains what Memory Companion does and what each step covers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="step-header">
+      <span class="step-number">2</span>
+      <h2>Reset Complete — Clean Slate</h2>
+    </div>
+    <div class="step-body">
+      <p>After clicking Reset Demo, the agent wipes every SQLite table (profile, people, events, routines, medications, logs, reminders), cancels any existing schedules, and inserts a realistic seed dataset. This gives us Jane Doe, her doctor, her children, two medications, routines, and recent events — all ready to explore.</p>
+      <div class="screenshot">
+        <img src="02-demo-reset-done.png" alt="Demo after reset">
+        <div class="screenshot-caption">The stepper shows all eight demo steps. Welcome is complete and the data is ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="step-header">
+      <span class="step-number">3</span>
+      <h2>Patient Profile</h2>
+    </div>
+    <div class="step-body">
+      <p>The profile stores only core identity facts: name, age, city, timezone, and notes. This is the anti-hallucination design in action — the AI system prompt contains only today's date, the patient's name, and their city. Every other fact lives in SQLite and is retrieved on demand via tools.</p>
+      <div class="screenshot">
+        <img src="03-demo-profile.png" alt="Demo profile step">
+        <div class="screenshot-caption">Jane Doe, 78, from Porto. The profile is the anchor for every retrieval query.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="step4">
+    <div class="step-header">
+      <span class="step-number">4</span>
+      <h2>People Configuration</h2>
+    </div>
+    <div class="step-body">
+      <p>The companion remembers important people so the patient can ask "Who is Maria?" or "When did I last see Dr. Silva?" Each person card shows relationship, phone, email, address, and notes. When the patient mentions someone in chat, the silent extraction pass automatically updates <code>last_mentioned_at</code>.</p>
+      <div class="screenshot">
+        <img src="04-demo-people.png" alt="Demo people step">
+        <div class="screenshot-caption">Three people configured: Dr. Ana Silva (doctor), José Ferreira (son), and Maria Santos (daughter).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step" id="step5">
+    <div class="step-header">
+      <span class="step-number">5</span>
+      <h2>Medications</h2>
+    </div>
+    <div class="step-body">
+      <p>Medications are stored with name, dosage, scheduled times, instructions, and prescriber. The agent creates per-medication cron schedules and sends reminder cards at the exact time. If the patient does not respond within 45 minutes, a follow-up card is sent once. This audit trail is stored in <code>medication_logs</code>.</p>
+      <div class="screenshot">
+        <img src="05-demo-medications.png" alt="Demo medications step">
+        <div class="screenshot-caption">Lisinopril at 08:00 and Metformin at 08:00 and 20:00 — both prescribed by Dr. Ana Silva.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step" id="step6">
+    <div class="step-header">
+      <span class="step-number">6</span>
+      <h2>Routines & Reminders</h2>
+    </div>
+    <div class="step-body">
+      <p>Routines are recurring daily activities (walks, meals, appointments). Reminders can be one-off or recurring and appear as actionable notification cards. Inactive routines or reminders remain in the database but are hidden from the grounding card and briefing.</p>
+      <div class="screenshot">
+        <img src="06-demo-routines.png" alt="Demo routines step">
+        <div class="screenshot-caption">Morning walk (07:00 daily) and Lunch with Maria (12:30 Sundays). Plus a daily drink-water reminder.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="step" id="step7">
+    <div class="step-header">
+      <span class="step-number">7</span>
+      <h2>Morning Briefing — Before Trigger</h2>
+    </div>
+    <div class="step-body">
+      <p>Every morning the companion sends a proactive briefing that orients the patient: today's date, the city, scheduled medications, routines, and a gentle mood check. In production this fires automatically via cron at the patient's wake-up time. In the demo we trigger it manually.</p>
+      <div class="screenshot">
+        <img src="07-demo-briefing-before.png" alt="Demo briefing before trigger">
+        <div class="screenshot-caption">The briefing step shows instructions and a button to simulate the morning briefing.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="step" id="step8">
+    <div class="step-header">
+      <span class="step-number">8</span>
+      <h2>Morning Briefing — Triggered</h2>
+    </div>
+    <div class="step-body">
+      <p>After triggering, the demo shows an example of what the patient sees: a friendly greeting, today's schedule, medication list, and a mood question. The real briefing is sent as a notification card to all connected clients via <code>this.broadcast()</code>.</p>
+      <div class="screenshot">
+        <img src="08-demo-briefing-after.png" alt="Demo briefing after trigger">
+        <div class="screenshot-caption">The briefing card includes date, schedule, medications, and asks "How are you feeling this morning?"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="step" id="step9">
+    <div class="step-header">
+      <span class="step-number">9</span>
+      <h2>Admin Summary</h2>
+    </div>
+    <div class="step-body">
+      <p>The caregiver dashboard provides a weekly summary: mood entries, medication adherence (taken vs skipped vs no response), recent events, and help requests. This gives caregivers a quick snapshot of wellbeing without reading every chat message.</p>
+      <div class="screenshot">
+        <img src="09-demo-summary.png" alt="Demo summary step">
+        <div class="screenshot-caption">Weekly overview for Jane Doe showing moods, medication stats, events, and help request count.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="step" id="step10">
+    <div class="step-header">
+      <span class="step-number">10</span>
+      <h2>Chat Preview</h2>
+    </div>
+    <div class="step-body">
+      <p>The chat interface is the heart of Memory Companion. Every message triggers two parallel AI calls: one for the reply, one for silent memory extraction. The demo shows example conversations that are fully grounded by database retrieval — no invented facts.</p>
+      <div class="screenshot">
+        <img src="10-demo-chat.png" alt="Demo chat preview">
+        <div class="screenshot-caption">Example grounded replies: "Who is Dr. Silva?", "What medications do I take?" — all retrieved from SQLite.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 11 -->
+  <div class="step" id="step11">
+    <div class="step-header">
+      <span class="step-number">11</span>
+      <h2>Live Chat View</h2>
+    </div>
+    <div class="step-body">
+      <p>Switching to the real Chat view shows the patient-facing interface. The header displays connection status, a debug toggle, theme switcher, and a clear-history button. The notification area at the top is where briefing and medication reminder cards appear.</p>
+      <div class="screenshot">
+        <img src="11-real-chat.png" alt="Real chat interface">
+        <div class="screenshot-caption">The live chat view with connection indicator, debug toggle, and quick-start prompt buttons.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 12 -->
+  <div class="step" id="step12">
+    <div class="step-header">
+      <span class="step-number">12</span>
+      <h2>Admin Dashboard — Profile</h2>
+    </div>
+    <div class="step-body">
+      <p>The Admin dashboard connects to the same agent via WebSocket and exposes full CRUD over every table. The Profile tab shows the single profile row with inline editing for name, age, city, timezone, notes, and custom instructions.</p>
+      <div class="screenshot">
+        <img src="12-admin-profile.png" alt="Admin profile tab">
+        <div class="screenshot-caption">Admin Profile tab — edit patient identity facts directly.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 13 -->
+  <div class="step" id="step13">
+    <div class="step-header">
+      <span class="step-number">13</span>
+      <h2>Admin Dashboard — People</h2>
+    </div>
+    <div class="step-body">
+      <p>The People tab lists every person in the database with inline editing. You can add new people via the grid at the top, edit existing rows in place, or delete entries. This is the same data the patient asks about in chat.</p>
+      <div class="screenshot">
+        <img src="13-admin-people.png" alt="Admin people tab">
+        <div class="screenshot-caption">Admin People tab — full CRUD on family members, doctors, and caregivers.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 14 -->
+  <div class="step" id="step14">
+    <div class="step-header">
+      <span class="step-number">14</span>
+      <h2>Admin Dashboard — Medications</h2>
+    </div>
+    <div class="step-body">
+      <p>The Medications tab shows all active and inactive medications. Scheduled times are stored as comma-separated strings (e.g., <code>08:00,20:00</code>). Adding or editing a medication here updates the database, and toggling Active/Inactive controls whether reminder schedules are created.</p>
+      <div class="screenshot">
+        <img src="14-admin-medications.png" alt="Admin medications tab">
+        <div class="screenshot-caption">Admin Medications tab — view dosages, times, instructions, and prescriber info.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 15 -->
+  <div class="step" id="step15">
+    <div class="step-header">
+      <span class="step-number">15</span>
+      <h2>Admin Dashboard — Routines</h2>
+    </div>
+    <div class="step-body">
+      <p>Routines appear in the morning briefing and grounding card when active. The admin view shows type (routine, appointment, or task), scheduled time, days of the week, and description. Inactive routines are preserved but excluded from patient-facing summaries.</p>
+      <div class="screenshot">
+        <img src="15-admin-routines.png" alt="Admin routines tab">
+        <div class="screenshot-caption">Admin Routines tab — morning walk and lunch appointment with their schedules.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 16 -->
+  <div class="step" id="step16">
+    <div class="step-header">
+      <span class="step-number">16</span>
+      <h2>Admin Dashboard — Reminders</h2>
+    </div>
+    <div class="step-body">
+      <p>Reminders can be one-off or recurring. Recurring reminders use a cron-style schedule parsed from a human-readable string. The admin view shows label, type, schedule, and active status. This is where caregivers create alerts like "Drink water" or "Take blood pressure."</p>
+      <div class="screenshot">
+        <img src="16-admin-reminders.png" alt="Admin reminders tab">
+        <div class="screenshot-caption">Admin Reminders tab — the daily drink-water reminder at 10:00.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 17 -->
+  <div class="step" id="step17">
+    <div class="step-header">
+      <span class="step-number">17</span>
+      <h2>Admin Dashboard — Actions</h2>
+    </div>
+    <div class="step-body">
+      <p>The Actions tab gives caregivers direct control over scheduled tasks. You can trigger the morning briefing immediately, send an evening check-in, or broadcast a custom notification. This is useful for demos and for manually nudging the patient outside normal cron hours.</p>
+      <div class="screenshot">
+        <img src="17-admin-actions.png" alt="Admin actions tab">
+        <div class="screenshot-caption">Admin Actions tab — trigger briefings, check-ins, and custom notifications on demand.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 18 -->
+  <div class="step" id="step18">
+    <div class="step-header">
+      <span class="step-number">18</span>
+      <h2>Send a Briefing from Admin</h2>
+    </div>
+    <div class="step-body">
+      <p>Clicking <strong>Send Morning Briefing</strong> in the Actions tab calls the same <code>triggerMorningBriefing()</code> method the cron uses. The button shows a loading state while the AI generates the briefing text, then the notification is broadcast to all connected clients.</p>
+      <div class="screenshot">
+        <img src="18-admin-briefing-sent.png" alt="Admin briefing sent">
+        <div class="screenshot-caption">The briefing button shows a loading state while the agent generates and broadcasts the card.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 19 -->
+  <div class="step" id="step19">
+    <div class="step-header">
+      <span class="step-number">19</span>
+      <h2>Patient Receives the Briefing</h2>
+    </div>
+    <div class="step-body">
+      <p>Switching back to the Chat view, the patient sees the briefing notification card at the top of the screen. It contains the grounding information and mood-check buttons. Tapping a mood logs an event and dismisses the card — no typing required.</p>
+      <div class="screenshot">
+        <img src="19-chat-with-briefing.png" alt="Chat with briefing notification">
+        <div class="screenshot-caption">The briefing card appears at the top of the chat with mood buttons: Good, Okay, Not great.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Memory Companion — Built on Cloudflare Agents.<br>
+  <a href="http://localhost:5173/demo" style="color: var(--accent);">Open the live demo</a>
+</footer>
+
+</body>
+</html>
