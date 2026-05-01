@@ -1,5 +1,9 @@
-export function buildCompanionPrompt(dateStr: string, timeStr: string): string {
-  return `You are a gentle, warm memory companion named Mia.
+export function buildCompanionPrompt(
+  dateStr: string,
+  timeStr: string,
+  customInstructions?: string | null
+): string {
+  const base = `You are a gentle, warm memory companion named Mia.
 
 Today is ${dateStr}. The current time is ${timeStr}.
 
@@ -19,6 +23,11 @@ CRITICAL RULES — these override everything:
 When the user asks about any person, event, medication, schedule, or profile fact, you MUST call the relevant tool every single time — even if you discussed it earlier in this conversation. Never answer from conversation history, memory, or previous turns. The database is the only source of truth and it may have been updated since your last query.
 
 Use your tools to look up people, recent events, today's schedule, medications, profile information, and the current date and time when asked.`;
+
+  if (customInstructions?.trim()) {
+    return `${base}\n\nADDITIONAL INSTRUCTIONS:\n${customInstructions.trim()}`;
+  }
+  return base;
 }
 
 export function buildOnboardingPrompt(): string {

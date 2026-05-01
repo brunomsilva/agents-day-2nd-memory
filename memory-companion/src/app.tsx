@@ -65,10 +65,14 @@ function fileToDataUri(file: File): Promise<string> {
 
 // ── Small components ──────────────────────────────────────────────────
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(
-    () => document.documentElement.getAttribute("data-mode") === "dark"
-  );
+function ThemeToggle({ storageKey }: { storageKey: string }) {
+  const [dark, setDark] = useState(() => {
+    const stored = localStorage.getItem(storageKey);
+    if (stored === "dark" || stored === "light") {
+      return stored === "dark";
+    }
+    return document.documentElement.getAttribute("data-mode") === "dark";
+  });
 
   const toggle = useCallback(() => {
     const next = !dark;
@@ -76,8 +80,8 @@ function ThemeToggle() {
     const mode = next ? "dark" : "light";
     document.documentElement.setAttribute("data-mode", mode);
     document.documentElement.style.colorScheme = mode;
-    localStorage.setItem("theme", mode);
-  }, [dark]);
+    localStorage.setItem(storageKey, mode);
+  }, [dark, storageKey]);
 
   return (
     <Button
@@ -446,7 +450,7 @@ function Chat() {
                 aria-label="Toggle debug mode"
               />
             </div>
-            <ThemeToggle />
+            <ThemeToggle storageKey="theme:patient" />
             <Button
               variant="secondary"
               icon={<TrashIcon size={16} />}
@@ -774,6 +778,15 @@ export default function App() {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
+
+  useEffect(() => {
+    const key = view === "chat" ? "theme:patient" : "theme:caretaker";
+    const stored = localStorage.getItem(key);
+    const mode = stored === "dark" || stored === "light" ? stored : "light";
+    document.documentElement.setAttribute("data-mode", mode);
+    document.documentElement.style.colorScheme = mode;
+  }, [view]);
+
   return (
     <Toasty>
       {/* View switcher — fixed top-right, z-50 so it floats above both views */}

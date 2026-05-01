@@ -39,6 +39,31 @@ describe("buildCompanionPrompt", () => {
     expect(prompt).toContain("listReminders");
     expect(prompt).toContain("cancelReminder");
   });
+
+  it("appends custom instructions when provided", () => {
+    const prompt = buildCompanionPrompt(
+      "Thursday, 1 May 2026",
+      "09:30",
+      "Always greet with 'Good morning sunshine'."
+    );
+    expect(prompt).toContain("ADDITIONAL INSTRUCTIONS");
+    expect(prompt).toContain("Always greet with 'Good morning sunshine'.");
+  });
+
+  it("does not append custom instructions when null or empty", () => {
+    const promptNull = buildCompanionPrompt(
+      "Thursday, 1 May 2026",
+      "09:30",
+      null
+    );
+    const promptEmpty = buildCompanionPrompt(
+      "Thursday, 1 May 2026",
+      "09:30",
+      "   "
+    );
+    expect(promptNull).not.toContain("ADDITIONAL INSTRUCTIONS");
+    expect(promptEmpty).not.toContain("ADDITIONAL INSTRUCTIONS");
+  });
 });
 
 describe("buildOnboardingPrompt", () => {

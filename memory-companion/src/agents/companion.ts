@@ -35,6 +35,31 @@ import type {
   MedicationAdherence
 } from "../types";
 
+const DAY_TO_CRON: Record<string, number> = {
+  sun: 0,
+  mon: 1,
+  tue: 2,
+  wed: 3,
+  thu: 4,
+  fri: 5,
+  sat: 6
+};
+
+function parseRecurrenceToCron(recurrence: string): string {
+  const daysMatch = recurrence.match(/days:([^ ]+)/);
+  const timeMatch = recurrence.match(/time:([^ ]+)/);
+  const days = daysMatch ? daysMatch[1].split(",") : ["mon"];
+  const time = timeMatch ? timeMatch[1] : "09:00";
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr, 10);
+  const dayNums = days
+    .map((d) => DAY_TO_CRON[d.toLowerCase()] ?? 1)
+    .sort((a, b) => a - b)
+    .join(",");
+  return `${minute} ${hour} * * ${dayNums}`;
+}
+
 export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   initialState: CompanionState = {
     setupComplete: false,
@@ -44,7 +69,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   async onStart() {
     await this
-      .sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, setup_complete INTEGER DEFAULT 0)`;
+      .sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, custom_instructions TEXT, setup_complete INTEGER DEFAULT 0)`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, relationship TEXT, notes TEXT, phone TEXT, email TEXT, address TEXT, last_mentioned_at TEXT)`;
     const peopleCols = this.sql<{ name: string }>`PRAGMA table_info(people)`;
@@ -53,6 +78,10 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       await this.sql`ALTER TABLE people ADD COLUMN email TEXT`;
     if (!colSet.has("address"))
       await this.sql`ALTER TABLE people ADD COLUMN address TEXT`;
+    const profileCols = this.sql<{ name: string }>`PRAGMA table_info(profile)`;
+    const profileColSet = new Set(profileCols.map((c) => c.name));
+    if (!profileColSet.has("custom_instructions"))
+      await this.sql`ALTER TABLE profile ADD COLUMN custom_instructions TEXT`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, occurred_on TEXT NOT NULL, description TEXT NOT NULL, type TEXT DEFAULT 'event', source TEXT DEFAULT 'user')`;
     await this
@@ -158,10 +187,16 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
     this.extractAndStoreMemory(userText, model).catch(() => {});
 
+    const [profile] = this.sql<Profile>`SELECT * FROM profile LIMIT 1`;
+
     return streamText({
       model,
       messages: await convertToModelMessages(this.messages),
-      system: buildCompanionPrompt(today, timeStr),
+      system: buildCompanionPrompt(
+        today,
+        timeStr,
+        profile?.custom_instructions
+      ),
       tools: makeRetrievalTools(this),
       stopWhen: stepCountIs(3)
     }).toUIMessageStreamResponse();
@@ -794,6 +829,9 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       await this.sql`UPDATE profile SET timezone = ${data.timezone}`;
     if (data.notes !== undefined)
       await this.sql`UPDATE profile SET notes = ${data.notes}`;
+    if (data.custom_instructions !== undefined)
+      await this
+        .sql`UPDATE profile SET custom_instructions = ${data.custom_instructions}`;
   }
 
   @callable()
@@ -935,6 +973,92 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   @callable()
   async deleteMedicationById(id: number): Promise<void> {
     await this.sql`DELETE FROM medications WHERE id = ${id}`;
+  }
+
+  @callable()
+  async listReminders(): Promise<Reminder[]> {
+    return [
+      ...this
+        .sql<Reminder>`SELECT * FROM reminders ORDER BY active DESC, id DESC`
+    ];
+  }
+
+  @callable()
+  async createReminder(data: {
+    label: string;
+    type: "once" | "recurring";
+    scheduled_for: string | null;
+    recurrence: string | null;
+  }): Promise<void> {
+    await this.sql`
+      INSERT INTO reminders (label, type, schedule_id, scheduled_for, recurrence)
+      VALUES (${data.label}, ${data.type}, ${"__pending__"}, ${data.scheduled_for ?? null}, ${data.recurrence ?? null})`;
+
+    const [row] = this.sql<{ id: number }>`SELECT last_insert_rowid() as id`;
+    const reminderId = row.id;
+
+    const scheduleArg =
+      data.type === "once"
+        ? new Date(data.scheduled_for as string)
+        : parseRecurrenceToCron(data.recurrence as string);
+
+    const schedule = await (
+      this as unknown as {
+        schedule: (
+          arg: unknown,
+          callback: string,
+          payload: unknown
+        ) => Promise<{ id: string }>;
+      }
+    ).schedule(scheduleArg, "reminderFired", { reminderId });
+
+    await this.sql`
+      UPDATE reminders SET schedule_id = ${schedule.id} WHERE id = ${reminderId}`;
+  }
+
+  @callable()
+  async triggerReminder(reminderId: number): Promise<void> {
+    const [reminder] = this
+      .sql<Reminder>`SELECT * FROM reminders WHERE id = ${reminderId} LIMIT 1`;
+    if (!reminder || !reminder.active) return;
+
+    const notification = {
+      id: crypto.randomUUID(),
+      type: "reminder" as const,
+      text: `⏰ Reminder: ${reminder.label}`,
+      timestamp: new Date().toISOString(),
+      actions: [{ label: "✅ Got it", value: "dismiss" }]
+    };
+
+    this.setState({
+      ...this.state,
+      notifications: [...this.state.notifications, notification]
+    });
+  }
+
+  @callable()
+  async updateReminderById(
+    id: number,
+    data: Partial<Omit<Reminder, "id" | "schedule_id">>
+  ): Promise<void> {
+    if (data.label !== undefined)
+      await this
+        .sql`UPDATE reminders SET label = ${data.label} WHERE id = ${id}`;
+    if (data.active !== undefined)
+      await this
+        .sql`UPDATE reminders SET active = ${data.active} WHERE id = ${id}`;
+  }
+
+  @callable()
+  async deleteReminderById(id: number): Promise<void> {
+    const rows = this.sql<{ schedule_id: string }>`
+      SELECT schedule_id FROM reminders WHERE id = ${id}`;
+    if (rows.length > 0) {
+      (
+        this as unknown as { cancelSchedule: (id: string) => void }
+      ).cancelSchedule(rows[0].schedule_id);
+    }
+    await this.sql`DELETE FROM reminders WHERE id = ${id}`;
   }
 
   @callable()

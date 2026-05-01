@@ -10,7 +10,8 @@ import type {
   Medication,
   MedicationLog,
   WeeklySummaryPayload,
-  Notification
+  Notification,
+  Reminder
 } from "./types";
 import { Badge, Button, Surface, Text, Input, Select } from "@cloudflare/kumo";
 import {
@@ -32,7 +33,9 @@ import {
   SunIcon,
   MoonIcon,
   MegaphoneIcon,
-  TrendUpIcon
+  TrendUpIcon,
+  AlarmIcon,
+  PlayIcon
 } from "@phosphor-icons/react";
 
 type Tab =
@@ -42,6 +45,7 @@ type Tab =
   | "routines"
   | "medications"
   | "medlogs"
+  | "reminders"
   | "actions"
   | "summary"
   | "notifications";
@@ -53,10 +57,41 @@ const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   { key: "routines", label: "Routines", icon: <ClockIcon size={14} /> },
   { key: "medications", label: "Medications", icon: <PillIcon size={14} /> },
   { key: "medlogs", label: "Med Logs", icon: <ClipboardTextIcon size={14} /> },
+  { key: "reminders", label: "Reminders", icon: <AlarmIcon size={14} /> },
   { key: "actions", label: "Actions", icon: <PaperPlaneRightIcon size={14} /> },
   { key: "summary", label: "Summary", icon: <ChartBarIcon size={14} /> },
   { key: "notifications", label: "Notifications", icon: <BellIcon size={14} /> }
 ];
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => {
+    const stored = localStorage.getItem("theme:caretaker");
+    if (stored === "dark" || stored === "light") {
+      return stored === "dark";
+    }
+    return document.documentElement.getAttribute("data-mode") === "dark";
+  });
+
+  const toggle = useCallback(() => {
+    const next = !dark;
+    setDark(next);
+    const mode = next ? "dark" : "light";
+    document.documentElement.setAttribute("data-mode", mode);
+    document.documentElement.style.colorScheme = mode;
+    localStorage.setItem("theme:caretaker", mode);
+  }, [dark]);
+
+  return (
+    <Button
+      variant="secondary"
+      shape="square"
+      icon={dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
+      onClick={toggle}
+      aria-label="Toggle theme"
+      className="w-full"
+    />
+  );
+}
 
 export function AdminDashboard() {
   const [connected, setConnected] = useState(false);
@@ -71,6 +106,7 @@ export function AdminDashboard() {
   const [medLogs, setMedLogs] = useState<
     (MedicationLog & { medication_name: string | null })[]
   >([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   const [summaryData, setSummaryData] = useState<WeeklySummaryPayload | null>(
     null
@@ -111,6 +147,21 @@ export function AdminDashboard() {
     scheduled_times: "",
     instructions: "",
     prescriber: "",
+    active: 1
+  });
+  const [newReminder, setNewReminder] = useState<{
+    label: string;
+    type: "once" | "recurring";
+    scheduled_for: string;
+    recurrence_days: string;
+    recurrence_time: string;
+    active: number;
+  }>({
+    label: "",
+    type: "once",
+    scheduled_for: "",
+    recurrence_days: "",
+    recurrence_time: "",
     active: 1
   });
 
@@ -155,6 +206,11 @@ export function AdminDashboard() {
           setMedLogs(list);
           break;
         }
+        case "reminders": {
+          const list = await agent.stub.listReminders();
+          setReminders(list);
+          break;
+        }
         case "summary": {
           const data = await agent.stub.getSummaryData();
           setSummaryData(data);
@@ -183,7 +239,8 @@ export function AdminDashboard() {
       age: profile.age,
       city: profile.city,
       timezone: profile.timezone,
-      notes: profile.notes
+      notes: profile.notes,
+      custom_instructions: profile.custom_instructions
     });
     await loadData();
   };
@@ -209,7 +266,7 @@ export function AdminDashboard() {
     await loadData();
   };
 
-  const startEdit = (item: Person | Routine | Medication) => {
+  const startEdit = (item: Person | Routine | Medication | Reminder) => {
     setEditingId(item.id);
     setEditForm({ ...item });
   };
@@ -344,6 +401,53 @@ export function AdminDashboard() {
     await loadData();
   };
 
+  const createReminder = async () => {
+    if (!agent.stub || !newReminder.label.trim()) return;
+    const recurrence =
+      newReminder.type === "recurring"
+        ? `days:${newReminder.recurrence_days
+            .split(",")
+            .map((d) => d.trim().slice(0, 3).toLowerCase())
+            .join(",")} time:${newReminder.recurrence_time}`
+        : null;
+    await agent.stub.createReminder({
+      label: newReminder.label,
+      type: newReminder.type,
+      scheduled_for: newReminder.scheduled_for || null,
+      recurrence
+    });
+    setNewReminder({
+      label: "",
+      type: "once",
+      scheduled_for: "",
+      recurrence_days: "",
+      recurrence_time: "",
+      active: 1
+    });
+    await loadData();
+  };
+
+  const saveReminderEdit = async (id: number) => {
+    if (!agent.stub) return;
+    await agent.stub.updateReminderById(id, {
+      label: editForm.label as string,
+      active: editForm.active as number
+    });
+    setEditingId(null);
+    await loadData();
+  };
+
+  const deleteReminder = async (id: number) => {
+    if (!agent.stub || !window.confirm("Delete this reminder?")) return;
+    await agent.stub.deleteReminderById(id);
+    await loadData();
+  };
+
+  const triggerReminder = async (id: number) => {
+    if (!agent.stub) return;
+    await agent.stub.triggerReminder(id);
+  };
+
   const sendBriefing = async () => {
     if (!agent.stub) return;
     setSendingAction("briefing");
@@ -400,17 +504,37 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-kumo-elevated p-6">
-      <Surface className="max-w-6xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Text size="base" bold>
-              Admin Dashboard
-            </Text>
-            <Badge variant={connected ? "success" : "destructive"}>
-              {connected ? "Connected" : "Disconnected"}
-            </Badge>
-          </div>
+    <div className="min-h-screen bg-kumo-elevated flex">
+      <aside className="w-60 bg-kumo-base border-r border-kumo-line flex flex-col">
+        <div className="p-4 border-b border-kumo-line space-y-2">
+          <Text size="base" bold>
+            Admin Dashboard
+          </Text>
+          <Badge variant={connected ? "success" : "destructive"}>
+            {connected ? "Connected" : "Disconnected"}
+          </Badge>
+        </div>
+        <nav className="flex-1 p-2 space-y-1">
+          {TABS.map((tab) => (
+            <Button
+              key={tab.key}
+              variant={activeTab === tab.key ? "primary" : "ghost"}
+              size="sm"
+              icon={tab.icon}
+              onClick={() => setActiveTab(tab.key)}
+              className="w-full justify-start"
+            >
+              {tab.label}
+            </Button>
+          ))}
+        </nav>
+        <div className="p-2 border-t border-kumo-line">
+          <ThemeToggle />
+        </div>
+      </aside>
+
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="flex justify-end mb-6">
           <Button
             variant="secondary"
             size="sm"
@@ -420,20 +544,6 @@ export function AdminDashboard() {
           >
             Refresh
           </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-6">
-          {TABS.map((tab) => (
-            <Button
-              key={tab.key}
-              variant={activeTab === tab.key ? "primary" : "outline"}
-              size="sm"
-              icon={tab.icon}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </Button>
-          ))}
         </div>
 
         {loading && (
@@ -494,6 +604,24 @@ export function AdminDashboard() {
                 setProfile((p) => (p ? { ...p, notes: e.target.value } : null))
               }
             />
+            <div className="space-y-1">
+              <label
+                htmlFor="custom-instructions"
+                className="text-sm text-kumo-secondary"
+              >
+                Custom Instructions
+              </label>
+              <textarea
+                id="custom-instructions"
+                className="w-full min-h-[100px] bg-kumo-elevated border border-kumo-line rounded-md px-3 py-2 text-sm text-kumo-default focus:outline-none focus:ring-1 focus:ring-kumo-accent resize-y"
+                value={profile?.custom_instructions ?? ""}
+                onChange={(e) =>
+                  setProfile((p) =>
+                    p ? { ...p, custom_instructions: e.target.value } : null
+                  )
+                }
+              />
+            </div>
             <Button
               variant="primary"
               size="sm"
@@ -1237,6 +1365,195 @@ export function AdminDashboard() {
           </table>
         )}
 
+        {!loading && activeTab === "reminders" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-6 gap-2 items-end">
+              <Input
+                size="sm"
+                placeholder="Label"
+                value={newReminder.label}
+                onChange={(e) =>
+                  setNewReminder({ ...newReminder, label: e.target.value })
+                }
+              />
+              <Select
+                size="sm"
+                aria-label="Type"
+                value={newReminder.type}
+                onValueChange={(v) =>
+                  setNewReminder({
+                    ...newReminder,
+                    type: v as "once" | "recurring"
+                  })
+                }
+              >
+                <Select.Option value="once">Once</Select.Option>
+                <Select.Option value="recurring">Recurring</Select.Option>
+              </Select>
+              {newReminder.type === "once" ? (
+                <Input
+                  size="sm"
+                  type="datetime-local"
+                  placeholder="Scheduled for"
+                  value={newReminder.scheduled_for}
+                  onChange={(e) =>
+                    setNewReminder({
+                      ...newReminder,
+                      scheduled_for: e.target.value
+                    })
+                  }
+                />
+              ) : (
+                <>
+                  <Input
+                    size="sm"
+                    placeholder="Days (e.g. mon,wed,fri)"
+                    value={newReminder.recurrence_days}
+                    onChange={(e) =>
+                      setNewReminder({
+                        ...newReminder,
+                        recurrence_days: e.target.value
+                      })
+                    }
+                  />
+                  <Input
+                    size="sm"
+                    type="time"
+                    placeholder="Time"
+                    value={newReminder.recurrence_time}
+                    onChange={(e) =>
+                      setNewReminder({
+                        ...newReminder,
+                        recurrence_time: e.target.value
+                      })
+                    }
+                  />
+                </>
+              )}
+              <Select
+                size="sm"
+                aria-label="Active"
+                value={String(newReminder.active)}
+                onValueChange={(v) =>
+                  setNewReminder({ ...newReminder, active: Number(v) })
+                }
+              >
+                <Select.Option value="1">Active</Select.Option>
+                <Select.Option value="0">Inactive</Select.Option>
+              </Select>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<PlusIcon size={14} />}
+                onClick={createReminder}
+                disabled={!connected}
+              >
+                Add
+              </Button>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-kumo-control text-kumo-default">
+                <tr>
+                  <th className="text-left px-3 py-2">ID</th>
+                  <th className="text-left px-3 py-2">Label</th>
+                  <th className="text-left px-3 py-2">Type</th>
+                  <th className="text-left px-3 py-2">Scheduled For</th>
+                  <th className="text-left px-3 py-2">Recurrence</th>
+                  <th className="text-left px-3 py-2">Active</th>
+                  <th className="text-left px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reminders.map((r) => (
+                  <tr key={r.id} className="border-b border-kumo-line">
+                    <td className="px-3 py-2">{r.id}</td>
+                    {editingId === r.id ? (
+                      <>
+                        <td className="px-3 py-2">
+                          <Input
+                            size="sm"
+                            value={String(editForm.label ?? "")}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                label: e.target.value
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="px-3 py-2">{r.type}</td>
+                        <td className="px-3 py-2">{r.scheduled_for}</td>
+                        <td className="px-3 py-2">{r.recurrence}</td>
+                        <td className="px-3 py-2">
+                          <Select
+                            size="sm"
+                            aria-label="Active"
+                            value={String(editForm.active ?? 1)}
+                            onValueChange={(v) =>
+                              setEditForm({
+                                ...editForm,
+                                active: Number(v)
+                              })
+                            }
+                          >
+                            <Select.Option value="1">Active</Select.Option>
+                            <Select.Option value="0">Inactive</Select.Option>
+                          </Select>
+                        </td>
+                        <td className="px-3 py-2 flex gap-1">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            icon={<CheckIcon size={14} />}
+                            onClick={() => saveReminderEdit(r.id)}
+                          />
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            icon={<XIcon size={14} />}
+                            onClick={cancelEdit}
+                          />
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-3 py-2">{r.label}</td>
+                        <td className="px-3 py-2">{r.type}</td>
+                        <td className="px-3 py-2">{r.scheduled_for}</td>
+                        <td className="px-3 py-2">{r.recurrence}</td>
+                        <td className="px-3 py-2">
+                          {renderActiveBadge(r.active)}
+                        </td>
+                        <td className="px-3 py-2 flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<PlayIcon size={14} />}
+                            onClick={() => triggerReminder(r.id)}
+                            disabled={!connected}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<PencilSimpleIcon size={14} />}
+                            onClick={() => startEdit(r)}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<TrashIcon size={14} />}
+                            onClick={() => deleteReminder(r.id)}
+                          />
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {!loading && activeTab === "actions" && (
           <div className="space-y-6 max-w-xl">
             <div className="space-y-3">
@@ -1466,7 +1783,7 @@ export function AdminDashboard() {
             )}
           </div>
         )}
-      </Surface>
+      </main>
     </div>
   );
 }

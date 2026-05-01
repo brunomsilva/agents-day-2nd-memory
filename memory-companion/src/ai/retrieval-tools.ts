@@ -219,9 +219,13 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
           : recurringToCron(recurring!.days, recurring!.time);
 
         // oxlint-disable-next-line typescript-eslint/no-explicit-any
-        const schedule = (agent as any).schedule(scheduleArg, "reminderFired", {
-          reminderId
-        });
+        const schedule = await (agent as any).schedule(
+          scheduleArg,
+          "reminderFired",
+          {
+            reminderId
+          }
+        );
 
         await agent.sql`
           UPDATE reminders SET schedule_id = ${schedule.id} WHERE id = ${reminderId}`;
