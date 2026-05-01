@@ -325,7 +325,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     // Only check existing medication reminder schedules, not briefing/checkin crons
     const existingMedKeys = new Set(
       existing
-        .filter(s => s.callback === 'medicationReminder' && s.cron)
+        .filter(s => s.callback === 'medicationReminder' && s.type === 'cron')
         .map(s => {
           const p = s.payload as { medicationId?: number; scheduledTime?: string };
           return `${p.medicationId}:${p.scheduledTime ?? ''}`;
@@ -370,7 +370,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
     this.setState({ ...this.state, notifications: [...this.state.notifications, notification] });
 
-    if (logRow?.id !== undefined) {
+    if (logRow?.id != null) {
       this.schedule(
         new Date(Date.now() + 45 * 60 * 1000),
         'medicationFollowUp',
