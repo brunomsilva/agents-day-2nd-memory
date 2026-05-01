@@ -11,9 +11,11 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
         name: z.string(),
         relationship: z.string().optional(),
         notes: z.string().optional(),
-        phone: z.string().optional()
+        phone: z.string().optional(),
+        email: z.string().optional(),
+        address: z.string().optional()
       }),
-      execute: async ({ name, relationship, notes, phone }) => {
+      execute: async ({ name, relationship, notes, phone, email, address }) => {
         const existing = agent.sql<{ id: number }>`
           SELECT id FROM people WHERE name = ${name} LIMIT 1`;
         if (existing.length > 0) {
@@ -21,11 +23,13 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
                           SET relationship = ${relationship ?? null},
                               notes = ${notes ?? null},
                               phone = ${phone ?? null},
+                              email = ${email ?? null},
+                              address = ${address ?? null},
                               last_mentioned_at = datetime('now')
                           WHERE id = ${existing[0].id}`;
         } else {
-          await agent.sql`INSERT INTO people (name, relationship, notes, phone, last_mentioned_at)
-                          VALUES (${name}, ${relationship ?? null}, ${notes ?? null}, ${phone ?? null}, datetime('now'))`;
+          await agent.sql`INSERT INTO people (name, relationship, notes, phone, email, address, last_mentioned_at)
+                          VALUES (${name}, ${relationship ?? null}, ${notes ?? null}, ${phone ?? null}, ${email ?? null}, ${address ?? null}, datetime('now'))`;
         }
         return { stored: true };
       }

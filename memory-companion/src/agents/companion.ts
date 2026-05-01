@@ -45,7 +45,13 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     await this
       .sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, setup_complete INTEGER DEFAULT 0)`;
     await this
-      .sql`CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, relationship TEXT, notes TEXT, phone TEXT, last_mentioned_at TEXT)`;
+      .sql`CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, relationship TEXT, notes TEXT, phone TEXT, email TEXT, address TEXT, last_mentioned_at TEXT)`;
+    const peopleCols = this.sql<{ name: string }>`PRAGMA table_info(people)`;
+    const colSet = new Set(peopleCols.map((c) => c.name));
+    if (!colSet.has("email"))
+      await this.sql`ALTER TABLE people ADD COLUMN email TEXT`;
+    if (!colSet.has("address"))
+      await this.sql`ALTER TABLE people ADD COLUMN address TEXT`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, occurred_on TEXT NOT NULL, description TEXT NOT NULL, type TEXT DEFAULT 'event', source TEXT DEFAULT 'user')`;
     await this
@@ -673,8 +679,8 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     data: Omit<Person, "id" | "last_mentioned_at">
   ): Promise<void> {
     await this
-      .sql`INSERT INTO people (name, relationship, notes, phone, last_mentioned_at)
-      VALUES (${data.name}, ${data.relationship ?? null}, ${data.notes ?? null}, ${data.phone ?? null}, datetime('now'))`;
+      .sql`INSERT INTO people (name, relationship, notes, phone, email, address, last_mentioned_at)
+      VALUES (${data.name}, ${data.relationship ?? null}, ${data.notes ?? null}, ${data.phone ?? null}, ${data.email ?? null}, ${data.address ?? null}, datetime('now'))`;
   }
 
   @callable()
@@ -691,6 +697,11 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       await this.sql`UPDATE people SET notes = ${data.notes} WHERE id = ${id}`;
     if (data.phone !== undefined)
       await this.sql`UPDATE people SET phone = ${data.phone} WHERE id = ${id}`;
+    if (data.email !== undefined)
+      await this.sql`UPDATE people SET email = ${data.email} WHERE id = ${id}`;
+    if (data.address !== undefined)
+      await this
+        .sql`UPDATE people SET address = ${data.address} WHERE id = ${id}`;
   }
 
   @callable()
@@ -841,11 +852,11 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
         .sql`INSERT INTO profile (name, age, city, timezone, notes, setup_complete)
                      VALUES ('Jane Doe', 78, 'Porto', 'Europe/Lisbon', 'Retired librarian, loves gardening', 1)`;
       await this
-        .sql`INSERT INTO people (name, relationship, notes, phone) VALUES
-                     ('John Doe', 'son', 'Lives nearby, visits on weekends', null)`;
+        .sql`INSERT INTO people (name, relationship, notes, phone, email, address) VALUES
+                     ('John Doe', 'son', 'Lives nearby, visits on weekends', null, null, null)`;
       await this
-        .sql`INSERT INTO people (name, relationship, notes, phone) VALUES
-                     ('James Doe', 'father', 'Lives in the countryside', null)`;
+        .sql`INSERT INTO people (name, relationship, notes, phone, email, address) VALUES
+                     ('James Doe', 'father', 'Lives in the countryside', null, null, null)`;
       await this
         .sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber) VALUES
                      ('Aspirin', '100mg, 1 tablet', '08:00', 'take with breakfast', 'Dr. Smith')`;

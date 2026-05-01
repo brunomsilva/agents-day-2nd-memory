@@ -43,6 +43,8 @@ export type Person = {
   relationship: string | null;
   notes: string | null;
   phone: string | null;
+  email: string | null;
+  address: string | null;
   last_mentioned_at: string | null;
 };
 

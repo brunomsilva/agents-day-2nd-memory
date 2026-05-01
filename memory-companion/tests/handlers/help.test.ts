@@ -58,6 +58,8 @@ describe("buildHelpResponse", () => {
         name: "John Doe",
         relationship: "son",
         phone: "+351912345678",
+        email: null,
+        address: null,
         notes: null,
         last_mentioned_at: null
       }
@@ -73,6 +75,8 @@ describe("buildHelpResponse", () => {
         name: "John Doe",
         relationship: "son",
         phone: null,
+        email: null,
+        address: null,
         notes: null,
         last_mentioned_at: null
       }

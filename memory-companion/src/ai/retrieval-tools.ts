@@ -15,7 +15,9 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
           relationship: string | null;
           notes: string | null;
           phone: string | null;
-        }>`SELECT id, name, relationship, notes, phone FROM people
+          email: string | null;
+          address: string | null;
+        }>`SELECT id, name, relationship, notes, phone, email, address FROM people
            WHERE name LIKE ${"%" + name + "%"} LIMIT 1`;
         if (rows.length === 0) {
           return {

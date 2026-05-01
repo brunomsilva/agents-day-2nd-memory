@@ -66,7 +66,9 @@ export function AdminDashboard() {
     name: "",
     relationship: "",
     notes: "",
-    phone: ""
+    phone: "",
+    email: "",
+    address: ""
   });
   const [newEvent, setNewEvent] = useState<Omit<Event, "id">>({
     occurred_on: "",
@@ -162,9 +164,18 @@ export function AdminDashboard() {
       name: newPerson.name,
       relationship: newPerson.relationship || null,
       notes: newPerson.notes || null,
-      phone: newPerson.phone || null
+      phone: newPerson.phone || null,
+      email: newPerson.email || null,
+      address: newPerson.address || null
     });
-    setNewPerson({ name: "", relationship: "", notes: "", phone: "" });
+    setNewPerson({
+      name: "",
+      relationship: "",
+      notes: "",
+      phone: "",
+      email: "",
+      address: ""
+    });
     await loadData();
   };
 
@@ -184,7 +195,9 @@ export function AdminDashboard() {
       name: editForm.name as string,
       relationship: editForm.relationship as string | null,
       notes: editForm.notes as string | null,
-      phone: editForm.phone as string | null
+      phone: editForm.phone as string | null,
+      email: editForm.email as string | null,
+      address: editForm.address as string | null
     });
     setEditingId(null);
     await loadData();
@@ -428,7 +441,7 @@ export function AdminDashboard() {
 
         {!loading && activeTab === "people" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-5 gap-2 items-end">
+            <div className="grid grid-cols-7 gap-2 items-end">
               <Input
                 size="sm"
                 placeholder="Name"
@@ -461,6 +474,22 @@ export function AdminDashboard() {
                   setNewPerson({ ...newPerson, phone: e.target.value })
                 }
               />
+              <Input
+                size="sm"
+                placeholder="Email"
+                value={newPerson.email}
+                onChange={(e) =>
+                  setNewPerson({ ...newPerson, email: e.target.value })
+                }
+              />
+              <Input
+                size="sm"
+                placeholder="Address"
+                value={newPerson.address}
+                onChange={(e) =>
+                  setNewPerson({ ...newPerson, address: e.target.value })
+                }
+              />
               <Button
                 variant="primary"
                 size="sm"
@@ -479,6 +508,8 @@ export function AdminDashboard() {
                   <th className="text-left px-3 py-2">Relationship</th>
                   <th className="text-left px-3 py-2">Notes</th>
                   <th className="text-left px-3 py-2">Phone</th>
+                  <th className="text-left px-3 py-2">Email</th>
+                  <th className="text-left px-3 py-2">Address</th>
                   <th className="text-left px-3 py-2">Actions</th>
                 </tr>
               </thead>
@@ -533,6 +564,30 @@ export function AdminDashboard() {
                             }
                           />
                         </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            size="sm"
+                            value={String(editForm.email ?? "")}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                email: e.target.value
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <Input
+                            size="sm"
+                            value={String(editForm.address ?? "")}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                address: e.target.value
+                              })
+                            }
+                          />
+                        </td>
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="primary"
@@ -554,6 +609,8 @@ export function AdminDashboard() {
                         <td className="px-3 py-2">{p.relationship}</td>
                         <td className="px-3 py-2">{p.notes}</td>
                         <td className="px-3 py-2">{p.phone}</td>
+                        <td className="px-3 py-2">{p.email}</td>
+                        <td className="px-3 py-2">{p.address}</td>
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="outline"
