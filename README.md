@@ -3,6 +3,18 @@
 An AI companion for people with early memory decline, built on Cloudflare Agents.
 Mia remembers people, events, and medications — and never invents facts she wasn't told.
 
+## What it does
+
+Memory Companion bridges the gap between patients experiencing early memory loss and the caregivers who support them. It combines a conversational AI companion for the patient with a full admin dashboard for caregivers.
+
+**For the patient**, Mia provides a simple chat interface where they can ask about their day, receive medication reminders, set routines, and talk through moments of confusion. Every answer is grounded in facts stored in SQLite — if Mia doesn't know something, she says so rather than guessing.
+
+**For the caregiver**, the admin dashboard offers complete visibility and control over the patient's data: profile, people, events, routines, medications, and medication adherence logs.
+
+| Patient chat | Caregiver admin |
+|:--|:--|
+| ![Patient chat interface](memory-companion/assets/patient.png) | ![Caregiver admin dashboard](memory-companion/assets/caretaker.png) |
+
 ## Quick links
 
 | Resource | Link |
