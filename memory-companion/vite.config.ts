@@ -5,5 +5,10 @@ import { defineConfig } from "vite";
 import agents from "agents/vite";
 
 export default defineConfig({
-  plugins: [agents(), react(), cloudflare({ remoteBindings: true }), tailwindcss()]
+  plugins: [
+    agents(),
+    react(),
+    cloudflare({ remoteBindings: true }),
+    tailwindcss()
+  ]
 });

@@ -4,10 +4,108 @@
 @source "../node_modules/streamdown/dist/*.js";
 @source "../node_modules/@streamdown/code/dist/*.js";
 
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
+@theme {
+  /* Lavender palette */
+  --color-lavender-50: #f5f0ff;
+  --color-lavender-100: #ede8ff;
+  --color-lavender-200: #d4c8f0;
+  --color-lavender-300: #b8a3e8;
+  --color-lavender-400: #9b7ede;
+  --color-lavender-500: #7c5cbf;
+  --color-lavender-600: #6b5b95;
+  --color-lavender-700: #4a3d6e;
+  --color-lavender-800: #3d3560;
+  --color-lavender-900: #2a2040;
+  --color-lavender-950: #1e1a2e;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Font stack */
+    font-family:
+      -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    font-size: 18px;
+    line-height: 1.7;
+
+    /* Kumo token overrides — lavender light mode */
+    --color-kumo-base: #f5f0ff;
+    --color-kumo-elevated: #ede8ff;
+    --color-kumo-brand: #7c5cbf;
+    --color-kumo-brand-hover: #6b5b95;
+    --color-kumo-line: #d4c8f0;
+    --text-color-kumo-default: #1a1035;
+    --text-color-kumo-subtle: #6b5b95;
+    --text-color-kumo-success: #4caf82;
+    --text-color-kumo-danger: #e05c7a;
+    --text-color-kumo-warning: #e8a84a;
+  }
+
+  [data-mode="dark"] {
+    color-scheme: dark;
+
+    /* Kumo token overrides — lavender dark mode */
+    --color-kumo-base: #1e1a2e;
+    --color-kumo-elevated: #16122a;
+    --color-kumo-brand: #a78bfa;
+    --color-kumo-brand-hover: #b8a3e8;
+    --color-kumo-line: #3d3560;
+    --text-color-kumo-default: #ede8ff;
+    --text-color-kumo-subtle: #a09abd;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  /* Assistant messages */
+  .sd-theme {
+    font-size: 19px;
+    line-height: 1.75;
+  }
+
+  /* User message bubbles */
+  .user-message {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  /* Header / app title */
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  /* Button labels */
+  button {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  /* Badge / secondary text */
+  .badge-text,
+  .secondary-text {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  /* Input / textarea */
+  input,
+  textarea {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.6;
+  }
 }

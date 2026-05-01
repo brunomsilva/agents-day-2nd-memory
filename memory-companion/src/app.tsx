@@ -224,17 +224,18 @@ function NotificationCard({
   onAction: (action: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-kumo-line bg-blue-50 dark:bg-blue-950/20 p-4 mb-2">
-      <p className="text-sm leading-relaxed whitespace-pre-line mb-3 text-kumo-default">
+    <div className="rounded-[20px] border border-kumo-line bg-purple-50 dark:bg-purple-950/30 p-5 mb-2">
+      <p className="text-base leading-relaxed whitespace-pre-line mb-3 text-kumo-default">
         {notification.text}
       </p>
-      <div className="flex flex-wrap gap-2">
-        {notification.actions.map((action) => (
+      <div className="flex flex-col gap-3 w-full">
+        {notification.actions.map((action, index) => (
           <Button
             key={action.value}
-            variant="primary"
+            variant={index === 0 ? "primary" : "secondary"}
             size="sm"
             onClick={() => onAction(action.value)}
+            className="min-h-[56px] w-full rounded-[14px] text-[17px] font-semibold"
           >
             {action.label}
           </Button>
@@ -244,6 +245,7 @@ function NotificationCard({
             variant="secondary"
             size="sm"
             onClick={() => onAction("dismiss")}
+            className="min-h-[56px] w-full rounded-[14px] text-[17px] font-semibold"
           >
             Dismiss
           </Button>
@@ -415,7 +417,7 @@ function Chat() {
       <header className="px-5 py-4 bg-kumo-base border-b border-kumo-line">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-kumo-default">
+            <h1 className="text-[22px] font-semibold text-kumo-default">
               <span className="mr-2">🧠</span>Mia — Memory Companion
             </h1>
             <Badge variant="secondary">
@@ -616,7 +618,7 @@ function Chat() {
                     if (isUser) {
                       return (
                         <div key={i} className="flex justify-end">
-                          <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
+                          <div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed user-message">
                             {text}
                           </div>
                         </div>
@@ -736,7 +738,7 @@ function Chat() {
                 aria-label="Stop generation"
                 icon={<StopIcon size={18} />}
                 onClick={stop}
-                className="mb-0.5"
+                className="mb-0.5 h-10 w-10"
               />
             ) : (
               <Button
@@ -748,7 +750,7 @@ function Chat() {
                   (!input.trim() && attachments.length === 0) || !connected
                 }
                 icon={<PaperPlaneRightIcon size={18} />}
-                className="mb-0.5"
+                className="mb-0.5 h-10 w-10"
               />
             )}
           </div>

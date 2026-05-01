@@ -74,8 +74,9 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   async onChatMessage(_onFinish: unknown, _options?: OnChatMessageOptions) {
     const openai = createOpenAI({
-      baseURL: "https://gateway.ai.cloudflare.com/v1/5a99d972b47766c8ea2134eec49a0902/agent-day/compat",
-      apiKey: this.env.KIMI_API_KEY,
+      baseURL:
+        "https://gateway.ai.cloudflare.com/v1/5a99d972b47766c8ea2134eec49a0902/agent-day/compat",
+      apiKey: this.env.KIMI_API_KEY
     });
     const model = openai("kimi-k2");
 
