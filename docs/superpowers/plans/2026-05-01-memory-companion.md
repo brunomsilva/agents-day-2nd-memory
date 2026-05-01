@@ -34,6 +34,16 @@
 | `vitest.config.ts` | Vitest config |
 | `scripts/seed.ts` | Demo seed SQL generator |
 
+## Implementation Notes
+
+> **Model availability:** `@cf/moonshotai/kimi-k2.6` is not listed in the Workers AI catalog at time of writing. Verify at `dash.cloudflare.com` → Workers AI → Models before starting. If unavailable, use `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (listed, capable) or switch to the Anthropic provider (`createAnthropic` + `ANTHROPIC_API_KEY` secret).
+
+> **SQL writes need `await`:** All `this.sql\`INSERT...\`` and `this.sql\`UPDATE...\`` calls must be awaited. Reads (`SELECT`) do not need await and return a synchronous iterable.
+
+> **`@callable()` requires TC39 decorators:** Do NOT add `"experimentalDecorators": true` to `tsconfig.json` — it breaks the standard decorators used by `@callable()`. The agents starter template already has the correct config.
+
+> **DDL via `this.sql`:** DDL statements must be written as inline tagged template literals (`await this.sql\`CREATE TABLE...\``). Passing raw strings to `this.sql` as a cast does not work.
+
 ---
 
 ## Task 1: Scaffold & Config
@@ -886,15 +896,15 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
         const existing = agent.sql<{ id: number }>`
           SELECT id FROM people WHERE name = ${name} LIMIT 1`;
         if (existing.length > 0) {
-          agent.sql`UPDATE people
-                    SET relationship = ${relationship ?? null},
-                        notes = ${notes ?? null},
-                        phone = ${phone ?? null},
-                        last_mentioned_at = datetime('now')
-                    WHERE id = ${existing[0].id}`;
+          await agent.sql`UPDATE people
+                          SET relationship = ${relationship ?? null},
+                              notes = ${notes ?? null},
+                              phone = ${phone ?? null},
+                              last_mentioned_at = datetime('now')
+                          WHERE id = ${existing[0].id}`;
         } else {
-          agent.sql`INSERT INTO people (name, relationship, notes, phone, last_mentioned_at)
-                    VALUES (${name}, ${relationship ?? null}, ${notes ?? null}, ${phone ?? null}, datetime('now'))`;
+          await agent.sql`INSERT INTO people (name, relationship, notes, phone, last_mentioned_at)
+                          VALUES (${name}, ${relationship ?? null}, ${notes ?? null}, ${phone ?? null}, datetime('now'))`;
         }
         return { stored: true };
       },
@@ -907,8 +917,8 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
         occurred_on: z.string().describe('ISO date YYYY-MM-DD, default to today if not specified'),
       }),
       execute: async ({ description, occurred_on }) => {
-        agent.sql`INSERT INTO events (occurred_on, description, type, source)
-                  VALUES (${occurred_on}, ${description}, 'event', 'user')`;
+        await agent.sql`INSERT INTO events (occurred_on, description, type, source)
+                        VALUES (${occurred_on}, ${description}, 'event', 'user')`;
         return { stored: true };
       },
     }),
@@ -922,13 +932,13 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
       execute: async ({ field, value }) => {
         const existing = agent.sql<{ name: string }>`SELECT name FROM profile LIMIT 1`;
         if (existing.length === 0) {
-          agent.sql`INSERT INTO profile (name, city, timezone) VALUES ('', '', 'UTC')`;
+          await agent.sql`INSERT INTO profile (name, city, timezone) VALUES ('', '', 'UTC')`;
         }
-        if (field === 'name') agent.sql`UPDATE profile SET name = ${value}`;
-        else if (field === 'city') agent.sql`UPDATE profile SET city = ${value}`;
-        else if (field === 'timezone') agent.sql`UPDATE profile SET timezone = ${value}`;
-        else if (field === 'age') agent.sql`UPDATE profile SET age = ${parseInt(value)}`;
-        else if (field === 'notes') agent.sql`UPDATE profile SET notes = ${value}`;
+        if (field === 'name') await agent.sql`UPDATE profile SET name = ${value}`;
+        else if (field === 'city') await agent.sql`UPDATE profile SET city = ${value}`;
+        else if (field === 'timezone') await agent.sql`UPDATE profile SET timezone = ${value}`;
+        else if (field === 'age') await agent.sql`UPDATE profile SET age = ${parseInt(value)}`;
+        else if (field === 'notes') await agent.sql`UPDATE profile SET notes = ${value}`;
         return { stored: true };
       },
     }),
@@ -943,8 +953,8 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
         prescriber: z.string().optional(),
       }),
       execute: async ({ name, dosage, scheduled_times, instructions, prescriber }) => {
-        agent.sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber)
-                  VALUES (${name}, ${dosage ?? null}, ${scheduled_times}, ${instructions ?? null}, ${prescriber ?? null})`;
+        await agent.sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber)
+                        VALUES (${name}, ${dosage ?? null}, ${scheduled_times}, ${instructions ?? null}, ${prescriber ?? null})`;
         return { stored: true };
       },
     }),
@@ -986,9 +996,9 @@ export class CaregiverAgent extends Agent<Env, CaregiverState> {
 
 ```typescript
 import { AIChatAgent } from 'agents/ai-chat';
+import { callable } from 'agents';
 import { createWorkersAI } from 'workers-ai-provider';
 import { streamText, generateText, convertToModelMessages } from 'ai';
-import { ALL_TABLES } from '../db/schema';
 import { buildCompanionPrompt, buildOnboardingPrompt, buildExtractionPrompt } from '../ai/prompts';
 import { makeRetrievalTools } from '../ai/retrieval-tools';
 import { makeExtractionTools } from '../ai/extraction-tools';
@@ -1011,9 +1021,14 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   };
 
   async onStart() {
-    for (const ddl of ALL_TABLES) {
-      this.sql([ddl] as unknown as TemplateStringsArray);
-    }
+    // this.sql is a tagged template literal — DDL must be inline, not passed as strings
+    await this.sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, setup_complete INTEGER DEFAULT 0)`;
+    await this.sql`CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, relationship TEXT, notes TEXT, phone TEXT, last_mentioned_at TEXT)`;
+    await this.sql`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, occurred_on TEXT NOT NULL, description TEXT NOT NULL, type TEXT DEFAULT 'event', source TEXT DEFAULT 'user')`;
+    await this.sql`CREATE TABLE IF NOT EXISTS routines (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, type TEXT DEFAULT 'routine', scheduled_time TEXT, days TEXT, description TEXT, active INTEGER DEFAULT 1)`;
+    await this.sql`CREATE TABLE IF NOT EXISTS medications (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, dosage TEXT, scheduled_times TEXT NOT NULL, instructions TEXT, prescriber TEXT, active INTEGER DEFAULT 1)`;
+    await this.sql`CREATE TABLE IF NOT EXISTS medication_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, medication_id INTEGER NOT NULL, scheduled_for TEXT NOT NULL, status TEXT DEFAULT 'pending', responded_at TEXT, source TEXT DEFAULT 'user')`;
+    await this.sql`CREATE TABLE IF NOT EXISTS caregiver_links (caregiver_telegram_id TEXT NOT NULL, access_level TEXT DEFAULT 'write')`;
 
     const [profile] = this.sql<{ setup_complete: number }>`
       SELECT setup_complete FROM profile LIMIT 1`;
@@ -1392,25 +1407,27 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     });
   }
 
-  callable_recordMood = async (mood: string, notificationId: string) => {
-    this.sql`INSERT INTO events (occurred_on, description, type, source)
-             VALUES (date('now'), ${`Morning mood: ${mood}`}, 'mood', 'system')`;
+  @callable()
+  async recordMood(mood: string, notificationId: string) {
+    await this.sql`INSERT INTO events (occurred_on, description, type, source)
+                   VALUES (date('now'), ${`Morning mood: ${mood}`}, 'mood', 'system')`;
     this.setState({
       ...this.state,
       notifications: this.state.notifications.filter(n => n.id !== notificationId),
     });
-  };
+  }
 
-  callable_acknowledgeMedication = async (
+  @callable()
+  async acknowledgeMedication(
     medicationId: number,
     logId: number,
     status: string,
     notificationId: string,
-  ) => {
+  ) {
     if (status === 'taken' || status === 'skipped') {
-      this.sql`UPDATE medication_logs
-               SET status = ${status}, responded_at = datetime('now')
-               WHERE medication_id = ${medicationId} AND status = 'pending'`;
+      await this.sql`UPDATE medication_logs
+                     SET status = ${status}, responded_at = datetime('now')
+                     WHERE medication_id = ${medicationId} AND status = 'pending'`;
     } else if (status === 'later') {
       await this.schedule(
         new Date(Date.now() + 30 * 60 * 1000),
@@ -1422,16 +1439,18 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       ...this.state,
       notifications: this.state.notifications.filter(n => n.id !== notificationId),
     });
-  };
+  }
 
-  callable_dismissNotification = async (notificationId: string) => {
+  @callable()
+  async dismissNotification(notificationId: string) {
     this.setState({
       ...this.state,
       notifications: this.state.notifications.filter(n => n.id !== notificationId),
     });
-  };
+  }
 
-  callable_getWeeklySummary = async (): Promise<string> => {
+  @callable()
+  async getWeeklySummary(): Promise<string> {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     const today = new Date().toISOString().split('T')[0];
 
@@ -1479,7 +1498,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     };
 
     return formatWeeklySummary(payload);
-  };
+  }
 
   async onRequest(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -1726,7 +1745,8 @@ Before editing, read it to understand the existing structure. Find: where the ma
 At the top of `src/app.tsx`, ensure these imports exist (add if missing):
 
 ```typescript
-import { useAgent, useAgentChat } from 'agents/react';
+import { useAgent } from 'agents/react';
+import { useAgentChat } from 'agents/ai-react'; // useAgentChat lives in agents/ai-react
 import type { CompanionState, Notification } from './types';
 ```
 
@@ -1768,16 +1788,16 @@ function NotificationCard({
             key={action.value}
             onClick={async () => {
               if (notification.type === 'briefing') {
-                await (agent.stub as any).callable_recordMood(action.value, notification.id);
+                await agent.stub.recordMood(action.value, notification.id);
               } else if (notification.type === 'medication') {
-                await (agent.stub as any).callable_acknowledgeMedication(
+                await agent.stub.acknowledgeMedication(
                   notification.medicationId,
                   0,
                   action.value,
                   notification.id,
                 );
               } else {
-                await (agent.stub as any).callable_dismissNotification(notification.id);
+                await agent.stub.dismissNotification(notification.id);
               }
             }}
             style={{
@@ -1797,7 +1817,7 @@ function NotificationCard({
         {notification.actions.length === 0 && (
           <button
             onClick={async () => {
-              await (agent.stub as any).callable_dismissNotification(notification.id);
+              await agent.stub.dismissNotification(notification.id);
             }}
             style={{
               padding: '8px 16px', borderRadius: 8, border: '1px solid #ccc',
