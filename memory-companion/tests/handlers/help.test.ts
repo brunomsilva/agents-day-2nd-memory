@@ -20,7 +20,7 @@ describe("distressCheck", () => {
 
   it("returns false for normal messages", () => {
     expect(distressCheck("What day is it today?")).toBe(false);
-    expect(distressCheck("Who is Maria?")).toBe(false);
+    expect(distressCheck("Who is Nemo?")).toBe(false);
     expect(distressCheck("I need help finding my keys")).toBe(false);
   });
 
@@ -31,31 +31,31 @@ describe("distressCheck", () => {
 
 describe("buildHelpResponse", () => {
   it("includes the user name", () => {
-    const result = buildHelpResponse("António", []);
-    expect(result).toContain("António");
+    const result = buildHelpResponse("Dori", []);
+    expect(result).toContain("Dori");
   });
 
   it("includes contact name and phone when provided", () => {
-    const result = buildHelpResponse("António", [
+    const result = buildHelpResponse("Dori", [
       {
         id: 1,
-        name: "Maria",
-        relationship: "daughter",
+        name: "Nemo",
+        relationship: "friend",
         phone: "+351912345678",
         notes: null,
         last_mentioned_at: null
       }
     ]);
-    expect(result).toContain("Maria");
+    expect(result).toContain("Nemo");
     expect(result).toContain("+351912345678");
   });
 
   it("shows contact without phone when phone is null", () => {
-    const result = buildHelpResponse("António", [
+    const result = buildHelpResponse("Dori", [
       {
         id: 1,
-        name: "Maria",
-        relationship: "daughter",
+        name: "Nemo",
+        relationship: "friend",
         phone: null,
         notes: null,
         last_mentioned_at: null

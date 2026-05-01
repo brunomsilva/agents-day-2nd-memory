@@ -4,7 +4,7 @@ import type { WeeklySummaryPayload } from "../../src/types";
 
 describe("formatWeeklySummary", () => {
   const base: WeeklySummaryPayload = {
-    profileName: "António",
+    profileName: "Dori",
     weekStart: "2026-04-28",
     weekEnd: "2026-05-04",
     medicationAdherence: [],
@@ -15,7 +15,7 @@ describe("formatWeeklySummary", () => {
 
   it("includes the user name and date range", () => {
     const result = formatWeeklySummary(base);
-    expect(result).toContain("António");
+    expect(result).toContain("Dori");
     expect(result).toContain("2026-04-28");
     expect(result).toContain("2026-05-04");
   });
@@ -24,10 +24,10 @@ describe("formatWeeklySummary", () => {
     const result = formatWeeklySummary({
       ...base,
       medicationAdherence: [
-        { name: "Aricept", taken: 6, skipped: 0, no_response: 1, total: 7 }
+        { name: "Algae Chips", taken: 6, skipped: 0, no_response: 1, total: 7 }
       ]
     });
-    expect(result).toContain("Aricept");
+    expect(result).toContain("Algae Chips");
     expect(result).toContain("6/7");
   });
 

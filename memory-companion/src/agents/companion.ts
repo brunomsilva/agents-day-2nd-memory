@@ -648,22 +648,22 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     if (url.pathname.endsWith("/seed")) {
       await this
         .sql`INSERT OR IGNORE INTO profile (name, age, city, timezone, notes, setup_complete)
-                     VALUES ('António', 78, 'Lisbon', 'Europe/Lisbon', 'Retired teacher, loves chess', 1)`;
+                     VALUES ('Dori', 78, 'Sydney', 'Australia/Sydney', 'Friendly and forgetful, loves swimming', 1)`;
       await this
         .sql`INSERT OR IGNORE INTO people (name, relationship, notes, phone) VALUES
-                     ('Maria', 'daughter', 'Lives in Porto, calls every Sunday', '+351912000001')`;
+                     ('Nemo', 'friend', 'Brave little clownfish, loves adventures', null)`;
       await this
         .sql`INSERT OR IGNORE INTO people (name, relationship, notes, phone) VALUES
-                     ('Dr. Costa', 'doctor', 'Family doctor at Clínica São João', '+351213000001')`;
+                     ('Marlin', 'father', 'Caring and protective father', null)`;
       await this
         .sql`INSERT OR IGNORE INTO medications (name, dosage, scheduled_times, instructions, prescriber) VALUES
-                     ('Aricept', '5mg, 1 tablet', '08:00', 'take with breakfast', 'Dr. Costa')`;
+                     ('Algae Chips', '1 handful', '08:00', 'take with breakfast', 'Marlin')`;
       await this
         .sql`INSERT OR IGNORE INTO routines (name, type, scheduled_time, days, description) VALUES
-                     ('Walk in the park', 'routine', '10:00', 'daily', 'Jardim da Estrela')`;
+                     ('Swim around the reef', 'routine', '10:00', 'daily', 'Great Barrier Reef')`;
       await this
         .sql`INSERT OR IGNORE INTO events (occurred_on, description, type, source) VALUES
-                     (date('now', '-1 days'), 'João visited for coffee in the afternoon', 'event', 'user')`;
+                     (date('now', '-1 days'), 'Nemo visited for a swim in the afternoon', 'event', 'user')`;
       this.setState({
         ...this.state,
         setupComplete: true,

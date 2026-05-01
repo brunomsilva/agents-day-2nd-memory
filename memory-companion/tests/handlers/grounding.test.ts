@@ -3,8 +3,8 @@ import { buildGroundingCard } from "../../src/handlers/grounding";
 
 describe("buildGroundingCard", () => {
   const base = {
-    userName: "António",
-    city: "Lisbon",
+    userName: "Dori",
+    city: "Sydney",
     dateStr: "Thursday, 1 May 2026",
     timeStr: "10:23am",
     todayEvents: [] as { occurred_on: string; description: string }[],
@@ -19,7 +19,7 @@ describe("buildGroundingCard", () => {
 
   it("includes city, date and time", () => {
     const card = buildGroundingCard(base);
-    expect(card).toContain("Lisbon");
+    expect(card).toContain("Sydney");
     expect(card).toContain("Thursday, 1 May 2026");
     expect(card).toContain("10:23am");
   });
@@ -27,16 +27,16 @@ describe("buildGroundingCard", () => {
   it("shows taken medication with check mark", () => {
     const card = buildGroundingCard({
       ...base,
-      todayMedications: [{ name: "Aricept", dosage: "5mg", status: "taken" }]
+      todayMedications: [{ name: "Algae Chips", dosage: "5mg", status: "taken" }]
     });
-    expect(card).toContain("Aricept");
+    expect(card).toContain("Algae Chips");
     expect(card).toContain("✅");
   });
 
   it("shows pending medication with pill emoji", () => {
     const card = buildGroundingCard({
       ...base,
-      todayMedications: [{ name: "Aricept", dosage: "5mg", status: "pending" }]
+      todayMedications: [{ name: "Algae Chips", dosage: "5mg", status: "pending" }]
     });
     expect(card).toContain("💊");
   });
