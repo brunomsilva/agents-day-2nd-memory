@@ -1,7 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import type { AIChatAgent } from '@cloudflare/ai-chat';
-import type { Env } from '../server';
 
 export function makeRetrievalTools(agent: AIChatAgent<Env>) {
   return {

@@ -2,7 +2,6 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { AIChatAgent } from '@cloudflare/ai-chat';
 import type { CompanionState } from '../types';
-import type { Env } from '../server';
 
 export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
   return {
