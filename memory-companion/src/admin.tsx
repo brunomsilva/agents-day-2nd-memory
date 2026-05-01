@@ -713,121 +713,126 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {people.map((p) => (
-                  <tr key={p.id} className="border-b border-kumo-line">
-                    <td className="px-3 py-2">{p.id}</td>
-                    {editingId === p.id ? (
-                      <>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.name ?? "")}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, name: e.target.value })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.relationship ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                relationship: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.notes ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                notes: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.phone ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                phone: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.email ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                email: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.address ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                address: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="primary"
-                            size="base"
-                            icon={<CheckIcon size={14} />}
-                            onClick={() => savePersonEdit(p.id)}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="base"
-                            icon={<XIcon size={14} />}
-                            onClick={cancelEdit}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-3 py-2">{p.name}</td>
-                        <td className="px-3 py-2">{p.relationship}</td>
-                        <td className="px-3 py-2">{p.notes}</td>
-                        <td className="px-3 py-2">{p.phone}</td>
-                        <td className="px-3 py-2">{p.email}</td>
-                        <td className="px-3 py-2">{p.address}</td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<PencilSimpleIcon size={14} />}
-                            onClick={() => startEdit(p)}
-                          />
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<TrashIcon size={14} />}
-                            onClick={() => deletePerson(p.id)}
-                          />
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
+                {[...people]
+                  .sort((a, b) => b.id - a.id)
+                  .map((p) => (
+                    <tr key={p.id} className="border-b border-kumo-line">
+                      <td className="px-3 py-2">{p.id}</td>
+                      {editingId === p.id ? (
+                        <>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.name ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  name: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.relationship ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  relationship: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.notes ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  notes: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.phone ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  phone: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.email ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  email: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.address ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  address: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="primary"
+                              size="base"
+                              icon={<CheckIcon size={14} />}
+                              onClick={() => savePersonEdit(p.id)}
+                            />
+                            <Button
+                              variant="secondary"
+                              size="base"
+                              icon={<XIcon size={14} />}
+                              onClick={cancelEdit}
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2">{p.name}</td>
+                          <td className="px-3 py-2">{p.relationship}</td>
+                          <td className="px-3 py-2">{p.notes}</td>
+                          <td className="px-3 py-2">{p.phone}</td>
+                          <td className="px-3 py-2">{p.email}</td>
+                          <td className="px-3 py-2">{p.address}</td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<PencilSimpleIcon size={14} />}
+                              onClick={() => startEdit(p)}
+                            />
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<TrashIcon size={14} />}
+                              onClick={() => deletePerson(p.id)}
+                            />
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -899,23 +904,25 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {events.map((ev) => (
-                  <tr key={ev.id} className="border-b border-kumo-line">
-                    <td className="px-3 py-2">{ev.id}</td>
-                    <td className="px-3 py-2">{ev.occurred_on}</td>
-                    <td className="px-3 py-2">{ev.description}</td>
-                    <td className="px-3 py-2">{ev.type}</td>
-                    <td className="px-3 py-2">{ev.source}</td>
-                    <td className="px-3 py-2">
-                      <Button
-                        variant="outline"
-                        size="base"
-                        icon={<TrashIcon size={14} />}
-                        onClick={() => deleteEvent(ev.id)}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {[...events]
+                  .sort((a, b) => b.id - a.id)
+                  .map((ev) => (
+                    <tr key={ev.id} className="border-b border-kumo-line">
+                      <td className="px-3 py-2">{ev.id}</td>
+                      <td className="px-3 py-2">{ev.occurred_on}</td>
+                      <td className="px-3 py-2">{ev.description}</td>
+                      <td className="px-3 py-2">{ev.type}</td>
+                      <td className="px-3 py-2">{ev.source}</td>
+                      <td className="px-3 py-2">
+                        <Button
+                          variant="outline"
+                          size="base"
+                          icon={<TrashIcon size={14} />}
+                          onClick={() => deleteEvent(ev.id)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -1006,130 +1013,138 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {routines.map((r) => (
-                  <tr key={r.id} className="border-b border-kumo-line">
-                    <td className="px-3 py-2">{r.id}</td>
-                    {editingId === r.id ? (
-                      <>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.name ?? "")}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, name: e.target.value })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            size="base"
-                            aria-label="Type"
-                            value={String(editForm.type ?? "routine")}
-                            onValueChange={(v) =>
-                              setEditForm({
-                                ...editForm,
-                                type: v as Routine["type"]
-                              })
-                            }
-                          >
-                            <Select.Option value="routine">
-                              routine
-                            </Select.Option>
-                            <Select.Option value="appointment">
-                              appointment
-                            </Select.Option>
-                            <Select.Option value="task">task</Select.Option>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.scheduled_time ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                scheduled_time: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.days ?? "")}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, days: e.target.value })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.description ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                description: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            size="base"
-                            aria-label="Active"
-                            value={String(editForm.active ?? 1)}
-                            onValueChange={(v) =>
-                              setEditForm({ ...editForm, active: Number(v) })
-                            }
-                          >
-                            <Select.Option value="1">Active</Select.Option>
-                            <Select.Option value="0">Inactive</Select.Option>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="primary"
-                            size="base"
-                            icon={<CheckIcon size={14} />}
-                            onClick={() => saveRoutineEdit(r.id)}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="base"
-                            icon={<XIcon size={14} />}
-                            onClick={cancelEdit}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-3 py-2">{r.name}</td>
-                        <td className="px-3 py-2">{r.type}</td>
-                        <td className="px-3 py-2">{r.scheduled_time}</td>
-                        <td className="px-3 py-2">{r.days}</td>
-                        <td className="px-3 py-2">{r.description}</td>
-                        <td className="px-3 py-2">
-                          {renderActiveBadge(r.active)}
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<PencilSimpleIcon size={14} />}
-                            onClick={() => startEdit(r)}
-                          />
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<TrashIcon size={14} />}
-                            onClick={() => deleteRoutine(r.id)}
-                          />
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
+                {[...routines]
+                  .sort((a, b) => b.id - a.id)
+                  .map((r) => (
+                    <tr key={r.id} className="border-b border-kumo-line">
+                      <td className="px-3 py-2">{r.id}</td>
+                      {editingId === r.id ? (
+                        <>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.name ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  name: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="base"
+                              aria-label="Type"
+                              value={String(editForm.type ?? "routine")}
+                              onValueChange={(v) =>
+                                setEditForm({
+                                  ...editForm,
+                                  type: v as Routine["type"]
+                                })
+                              }
+                            >
+                              <Select.Option value="routine">
+                                routine
+                              </Select.Option>
+                              <Select.Option value="appointment">
+                                appointment
+                              </Select.Option>
+                              <Select.Option value="task">task</Select.Option>
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.scheduled_time ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  scheduled_time: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.days ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  days: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.description ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  description: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="base"
+                              aria-label="Active"
+                              value={String(editForm.active ?? 1)}
+                              onValueChange={(v) =>
+                                setEditForm({ ...editForm, active: Number(v) })
+                              }
+                            >
+                              <Select.Option value="1">Active</Select.Option>
+                              <Select.Option value="0">Inactive</Select.Option>
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="primary"
+                              size="base"
+                              icon={<CheckIcon size={14} />}
+                              onClick={() => saveRoutineEdit(r.id)}
+                            />
+                            <Button
+                              variant="secondary"
+                              size="base"
+                              icon={<XIcon size={14} />}
+                              onClick={cancelEdit}
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2">{r.name}</td>
+                          <td className="px-3 py-2">{r.type}</td>
+                          <td className="px-3 py-2">{r.scheduled_time}</td>
+                          <td className="px-3 py-2">{r.days}</td>
+                          <td className="px-3 py-2">{r.description}</td>
+                          <td className="px-3 py-2">
+                            {renderActiveBadge(r.active)}
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<PencilSimpleIcon size={14} />}
+                              onClick={() => startEdit(r)}
+                            />
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<TrashIcon size={14} />}
+                              onClick={() => deleteRoutine(r.id)}
+                            />
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -1222,124 +1237,129 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {medications.map((m) => (
-                  <tr key={m.id} className="border-b border-kumo-line">
-                    <td className="px-3 py-2">{m.id}</td>
-                    {editingId === m.id ? (
-                      <>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.name ?? "")}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, name: e.target.value })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.dosage ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                dosage: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.scheduled_times ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                scheduled_times: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.instructions ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                instructions: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.prescriber ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                prescriber: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Select
-                            size="base"
-                            aria-label="Active"
-                            value={String(editForm.active ?? 1)}
-                            onValueChange={(v) =>
-                              setEditForm({ ...editForm, active: Number(v) })
-                            }
-                          >
-                            <Select.Option value="1">Active</Select.Option>
-                            <Select.Option value="0">Inactive</Select.Option>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="primary"
-                            size="base"
-                            icon={<CheckIcon size={14} />}
-                            onClick={() => saveMedicationEdit(m.id)}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="base"
-                            icon={<XIcon size={14} />}
-                            onClick={cancelEdit}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-3 py-2">{m.name}</td>
-                        <td className="px-3 py-2">{m.dosage}</td>
-                        <td className="px-3 py-2">{m.scheduled_times}</td>
-                        <td className="px-3 py-2">{m.instructions}</td>
-                        <td className="px-3 py-2">{m.prescriber}</td>
-                        <td className="px-3 py-2">
-                          {renderActiveBadge(m.active)}
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<PencilSimpleIcon size={14} />}
-                            onClick={() => startEdit(m)}
-                          />
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<TrashIcon size={14} />}
-                            onClick={() => deleteMedication(m.id)}
-                          />
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
+                {[...medications]
+                  .sort((a, b) => b.id - a.id)
+                  .map((m) => (
+                    <tr key={m.id} className="border-b border-kumo-line">
+                      <td className="px-3 py-2">{m.id}</td>
+                      {editingId === m.id ? (
+                        <>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.name ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  name: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.dosage ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  dosage: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.scheduled_times ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  scheduled_times: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.instructions ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  instructions: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.prescriber ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  prescriber: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="base"
+                              aria-label="Active"
+                              value={String(editForm.active ?? 1)}
+                              onValueChange={(v) =>
+                                setEditForm({ ...editForm, active: Number(v) })
+                              }
+                            >
+                              <Select.Option value="1">Active</Select.Option>
+                              <Select.Option value="0">Inactive</Select.Option>
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="primary"
+                              size="base"
+                              icon={<CheckIcon size={14} />}
+                              onClick={() => saveMedicationEdit(m.id)}
+                            />
+                            <Button
+                              variant="secondary"
+                              size="base"
+                              icon={<XIcon size={14} />}
+                              onClick={cancelEdit}
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2">{m.name}</td>
+                          <td className="px-3 py-2">{m.dosage}</td>
+                          <td className="px-3 py-2">{m.scheduled_times}</td>
+                          <td className="px-3 py-2">{m.instructions}</td>
+                          <td className="px-3 py-2">{m.prescriber}</td>
+                          <td className="px-3 py-2">
+                            {renderActiveBadge(m.active)}
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<PencilSimpleIcon size={14} />}
+                              onClick={() => startEdit(m)}
+                            />
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<TrashIcon size={14} />}
+                              onClick={() => deleteMedication(m.id)}
+                            />
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -1357,15 +1377,19 @@ export function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {medLogs.map((ml) => (
-                <tr key={ml.id} className="border-b border-kumo-line">
-                  <td className="px-3 py-2">{ml.medication_name}</td>
-                  <td className="px-3 py-2">{ml.scheduled_for}</td>
-                  <td className="px-3 py-2">{renderStatusBadge(ml.status)}</td>
-                  <td className="px-3 py-2">{ml.responded_at}</td>
-                  <td className="px-3 py-2">{ml.source}</td>
-                </tr>
-              ))}
+              {[...medLogs]
+                .sort((a, b) => b.id - a.id)
+                .map((ml) => (
+                  <tr key={ml.id} className="border-b border-kumo-line">
+                    <td className="px-3 py-2">{ml.medication_name}</td>
+                    <td className="px-3 py-2">{ml.scheduled_for}</td>
+                    <td className="px-3 py-2">
+                      {renderStatusBadge(ml.status)}
+                    </td>
+                    <td className="px-3 py-2">{ml.responded_at}</td>
+                    <td className="px-3 py-2">{ml.source}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         )}
@@ -1469,91 +1493,93 @@ export function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {reminders.map((r) => (
-                  <tr key={r.id} className="border-b border-kumo-line">
-                    <td className="px-3 py-2">{r.id}</td>
-                    {editingId === r.id ? (
-                      <>
-                        <td className="px-3 py-2">
-                          <Input
-                            size="base"
-                            value={String(editForm.label ?? "")}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                label: e.target.value
-                              })
-                            }
-                          />
-                        </td>
-                        <td className="px-3 py-2">{r.type}</td>
-                        <td className="px-3 py-2">{r.scheduled_for}</td>
-                        <td className="px-3 py-2">{r.recurrence}</td>
-                        <td className="px-3 py-2">
-                          <Select
-                            size="base"
-                            aria-label="Active"
-                            value={String(editForm.active ?? 1)}
-                            onValueChange={(v) =>
-                              setEditForm({
-                                ...editForm,
-                                active: Number(v)
-                              })
-                            }
-                          >
-                            <Select.Option value="1">Active</Select.Option>
-                            <Select.Option value="0">Inactive</Select.Option>
-                          </Select>
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="primary"
-                            size="base"
-                            icon={<CheckIcon size={14} />}
-                            onClick={() => saveReminderEdit(r.id)}
-                          />
-                          <Button
-                            variant="secondary"
-                            size="base"
-                            icon={<XIcon size={14} />}
-                            onClick={cancelEdit}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-3 py-2">{r.label}</td>
-                        <td className="px-3 py-2">{r.type}</td>
-                        <td className="px-3 py-2">{r.scheduled_for}</td>
-                        <td className="px-3 py-2">{r.recurrence}</td>
-                        <td className="px-3 py-2">
-                          {renderActiveBadge(r.active)}
-                        </td>
-                        <td className="px-3 py-2 flex gap-1">
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<PlayIcon size={14} />}
-                            onClick={() => triggerReminder(r.id)}
-                            disabled={!connected}
-                          />
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<PencilSimpleIcon size={14} />}
-                            onClick={() => startEdit(r)}
-                          />
-                          <Button
-                            variant="outline"
-                            size="base"
-                            icon={<TrashIcon size={14} />}
-                            onClick={() => deleteReminder(r.id)}
-                          />
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
+                {[...reminders]
+                  .sort((a, b) => b.id - a.id)
+                  .map((r) => (
+                    <tr key={r.id} className="border-b border-kumo-line">
+                      <td className="px-3 py-2">{r.id}</td>
+                      {editingId === r.id ? (
+                        <>
+                          <td className="px-3 py-2">
+                            <Input
+                              size="base"
+                              value={String(editForm.label ?? "")}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  label: e.target.value
+                                })
+                              }
+                            />
+                          </td>
+                          <td className="px-3 py-2">{r.type}</td>
+                          <td className="px-3 py-2">{r.scheduled_for}</td>
+                          <td className="px-3 py-2">{r.recurrence}</td>
+                          <td className="px-3 py-2">
+                            <Select
+                              size="base"
+                              aria-label="Active"
+                              value={String(editForm.active ?? 1)}
+                              onValueChange={(v) =>
+                                setEditForm({
+                                  ...editForm,
+                                  active: Number(v)
+                                })
+                              }
+                            >
+                              <Select.Option value="1">Active</Select.Option>
+                              <Select.Option value="0">Inactive</Select.Option>
+                            </Select>
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="primary"
+                              size="base"
+                              icon={<CheckIcon size={14} />}
+                              onClick={() => saveReminderEdit(r.id)}
+                            />
+                            <Button
+                              variant="secondary"
+                              size="base"
+                              icon={<XIcon size={14} />}
+                              onClick={cancelEdit}
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2">{r.label}</td>
+                          <td className="px-3 py-2">{r.type}</td>
+                          <td className="px-3 py-2">{r.scheduled_for}</td>
+                          <td className="px-3 py-2">{r.recurrence}</td>
+                          <td className="px-3 py-2">
+                            {renderActiveBadge(r.active)}
+                          </td>
+                          <td className="px-3 py-2 flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<PlayIcon size={14} />}
+                              onClick={() => triggerReminder(r.id)}
+                              disabled={!connected}
+                            />
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<PencilSimpleIcon size={14} />}
+                              onClick={() => startEdit(r)}
+                            />
+                            <Button
+                              variant="outline"
+                              size="base"
+                              icon={<TrashIcon size={14} />}
+                              onClick={() => deleteReminder(r.id)}
+                            />
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

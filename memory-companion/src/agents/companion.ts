@@ -113,7 +113,10 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   }
 
   async onChatMessage(_onFinish: unknown, _options?: OnChatMessageOptions) {
-    const workersai = createWorkersAI({ binding: this.env.AI });
+    const workersai = createWorkersAI({
+      binding: this.env.AI,
+      gateway: { id: "agent-day" }
+    });
     const model = workersai("@cf/moonshotai/kimi-k2.6");
 
     const lastMessage = this.messages[this.messages.length - 1];
