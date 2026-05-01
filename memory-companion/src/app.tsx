@@ -762,10 +762,18 @@ function Chat() {
   );
 }
 
-type AppView = "chat" | "admin";
+function getView(): "chat" | "admin" {
+  return window.location.pathname === "/admin" ? "admin" : "chat";
+}
 
 export default function App() {
-  const [view, setView] = useState<AppView>("chat");
+  const [view, setView] = useState<"chat" | "admin">(getView);
+
+  useEffect(() => {
+    const onPopState = () => setView(getView());
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
   return (
     <Toasty>
       {/* View switcher — fixed top-right, z-50 so it floats above both views */}
@@ -773,7 +781,10 @@ export default function App() {
         <Button
           size="sm"
           variant={view === "chat" ? "primary" : "ghost"}
-          onClick={() => setView("chat")}
+          onClick={() => {
+            history.pushState(null, "", "/");
+            setView("chat");
+          }}
           icon={<ChatCircleDotsIcon size={14} />}
         >
           Chat
@@ -781,7 +792,10 @@ export default function App() {
         <Button
           size="sm"
           variant={view === "admin" ? "primary" : "ghost"}
-          onClick={() => setView("admin")}
+          onClick={() => {
+            history.pushState(null, "", "/admin");
+            setView("admin");
+          }}
           icon={<GearIcon size={14} />}
         >
           Admin
