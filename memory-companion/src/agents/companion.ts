@@ -322,14 +322,23 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   scheduleMedicationReminders() {
     const meds = this.sql<Medication>`SELECT * FROM medications WHERE active = 1`;
     const existing = this.getSchedules();
-    const existingCrons = new Set(existing.map(s => s.cron).filter(Boolean));
+    // Only check existing medication reminder schedules, not briefing/checkin crons
+    const existingMedKeys = new Set(
+      existing
+        .filter(s => s.callback === 'medicationReminder' && s.cron)
+        .map(s => {
+          const p = s.payload as { medicationId?: number; scheduledTime?: string };
+          return `${p.medicationId}:${p.scheduledTime ?? ''}`;
+        })
+    );
 
     for (const med of meds) {
       const times = parseMedicationTimes(med.scheduled_times);
       for (const time of times) {
-        const [hour, minute] = time.split(':');
-        const cron = `${minute} ${hour} * * *`;
-        if (!existingCrons.has(cron)) {
+        const key = `${med.id}:${time}`;
+        if (!existingMedKeys.has(key)) {
+          const [hour, minute] = time.split(':');
+          const cron = `${minute} ${hour} * * *`;
           this.schedule(cron, 'medicationReminder', { medicationId: med.id, scheduledTime: time });
         }
       }
