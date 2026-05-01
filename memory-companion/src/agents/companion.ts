@@ -19,7 +19,6 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     setupComplete: false,
     onboardingStep: 'name',
     notifications: [],
-    medicationScheduleIds: {},
   };
 
   async onStart() {
@@ -111,7 +110,6 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       system: buildCompanionPrompt(profile?.name ?? '', profile?.city ?? '', today),
       tools: makeRetrievalTools(this),
       stopWhen: stepCountIs(3),
-      abortSignal: (options as any)?.abortSignal,
     }).toUIMessageStreamResponse();
   }
 
@@ -323,28 +321,19 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   scheduleMedicationReminders() {
     const meds = this.sql<Medication>`SELECT * FROM medications WHERE active = 1`;
-    const ids: Record<string, string> = {};
+    const existing = this.getSchedules();
+    const existingCrons = new Set(existing.map(s => s.cron).filter(Boolean));
 
     for (const med of meds) {
       const times = parseMedicationTimes(med.scheduled_times);
       for (const time of times) {
-        const key = `${med.id}:${time}`;
-        if (!this.state.medicationScheduleIds[key]) {
-          const [hour, minute] = time.split(':');
-          const cron = `${minute} ${hour} * * *`;
-          const scheduleId = this.schedule(cron, 'medicationReminder', {
-            medicationId: med.id,
-            scheduledTime: time,
-          });
-          ids[key] = scheduleId as unknown as string;
+        const [hour, minute] = time.split(':');
+        const cron = `${minute} ${hour} * * *`;
+        if (!existingCrons.has(cron)) {
+          this.schedule(cron, 'medicationReminder', { medicationId: med.id, scheduledTime: time });
         }
       }
     }
-
-    this.setState({
-      ...this.state,
-      medicationScheduleIds: { ...this.state.medicationScheduleIds, ...ids },
-    });
   }
 
   async medicationReminder({ medicationId, scheduledTime }: { medicationId: number; scheduledTime: string }) {
@@ -362,6 +351,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       text: buildMedicationReminderText(med),
       timestamp: new Date().toISOString(),
       medicationId,
+      logId: logRow?.id,
       actions: [
         { label: '✅ I took it', value: 'taken' },
         { label: '⏰ 30 more minutes', value: 'later' },
@@ -371,11 +361,13 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
     this.setState({ ...this.state, notifications: [...this.state.notifications, notification] });
 
-    this.schedule(
-      new Date(Date.now() + 45 * 60 * 1000),
-      'medicationFollowUp',
-      { medicationId, logId: logRow?.id, notificationId: notification.id },
-    );
+    if (logRow?.id !== undefined) {
+      this.schedule(
+        new Date(Date.now() + 45 * 60 * 1000),
+        'medicationFollowUp',
+        { medicationId, logId: logRow.id, notificationId: notification.id },
+      );
+    }
   }
 
   async medicationFollowUp({

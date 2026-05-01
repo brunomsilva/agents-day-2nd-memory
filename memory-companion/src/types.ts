@@ -4,7 +4,6 @@ export type CompanionState = {
   setupComplete: boolean;
   onboardingStep: OnboardingStep;
   notifications: Notification[];
-  medicationScheduleIds: Record<string, string>;
   summaryScheduleId?: string;
 };
 
@@ -14,6 +13,7 @@ export type Notification = {
   text: string;
   timestamp: string;
   medicationId?: number;
+  logId?: number;
   actions: NotificationAction[];
 };
 
