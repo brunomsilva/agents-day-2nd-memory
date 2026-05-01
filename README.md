@@ -13,7 +13,7 @@ Memory Companion bridges the gap between patients experiencing early memory loss
 
 | Patient chat | Caregiver admin |
 |:--|:--|
-| ![Patient chat interface](memory-companion/assets/patient.png) | ![Caregiver admin dashboard](memory-companion/assets/caretaker.png) |
+| ![Patient chat interface](assets/patient.png) | ![Caregiver admin dashboard](assets/caretaker.png) |
 
 ## Quick links
 
