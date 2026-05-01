@@ -11,7 +11,12 @@
     <link rel="icon" href="/favicon.ico" />
     <script>
       (() => {
-        const mode = localStorage.getItem("theme") || "light";
+        const key =
+          window.location.pathname === "/admin"
+            ? "theme:caretaker"
+            : "theme:patient";
+        const mode =
+          localStorage.getItem(key) || localStorage.getItem("theme") || "light";
         document.documentElement.setAttribute("data-mode", mode);
         document.documentElement.style.colorScheme = mode;
       })();

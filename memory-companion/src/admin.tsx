@@ -84,12 +84,14 @@ function ThemeToggle() {
   return (
     <Button
       variant="secondary"
-      shape="square"
+      size="sm"
       icon={dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
       onClick={toggle}
       aria-label="Toggle theme"
-      className="w-full"
-    />
+      className="w-full justify-start"
+    >
+      {dark ? "Light mode" : "Dark mode"}
+    </Button>
   );
 }
 
