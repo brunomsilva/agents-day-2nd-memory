@@ -84,7 +84,7 @@ function ThemeToggle() {
   return (
     <Button
       variant="secondary"
-      size="sm"
+      size="base"
       icon={dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
       onClick={toggle}
       aria-label="Toggle theme"
@@ -521,7 +521,7 @@ export function AdminDashboard() {
             <Button
               key={tab.key}
               variant={activeTab === tab.key ? "primary" : "ghost"}
-              size="sm"
+              size="base"
               icon={tab.icon}
               onClick={() => setActiveTab(tab.key)}
               className="w-full justify-start"
@@ -533,13 +533,16 @@ export function AdminDashboard() {
         <div className="p-2 border-t border-kumo-line">
           <ThemeToggle />
         </div>
+        <div className="p-2 border-t border-kumo-line text-sm text-kumo-secondary text-center">
+          Memory Companion
+        </div>
       </aside>
 
       <main className="flex-1 p-6 overflow-auto">
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 gap-2">
           <Button
             variant="secondary"
-            size="sm"
+            size="base"
             icon={<ArrowClockwiseIcon size={14} />}
             onClick={loadData}
             disabled={!connected || loading}
@@ -549,7 +552,7 @@ export function AdminDashboard() {
         </div>
 
         {loading && (
-          <Text size="sm" variant="secondary">
+          <Text size="base" variant="secondary">
             Loading...
           </Text>
         )}
@@ -558,7 +561,7 @@ export function AdminDashboard() {
           <div className="space-y-4 max-w-xl">
             <Input
               label="Name"
-              size="sm"
+              size="base"
               value={profile?.name ?? ""}
               onChange={(e) =>
                 setProfile((p) => (p ? { ...p, name: e.target.value } : null))
@@ -566,7 +569,7 @@ export function AdminDashboard() {
             />
             <Input
               label="Age"
-              size="sm"
+              size="base"
               type="number"
               value={profile?.age?.toString() ?? ""}
               onChange={(e) =>
@@ -582,7 +585,7 @@ export function AdminDashboard() {
             />
             <Input
               label="City"
-              size="sm"
+              size="base"
               value={profile?.city ?? ""}
               onChange={(e) =>
                 setProfile((p) => (p ? { ...p, city: e.target.value } : null))
@@ -590,7 +593,7 @@ export function AdminDashboard() {
             />
             <Input
               label="Timezone"
-              size="sm"
+              size="base"
               value={profile?.timezone ?? ""}
               onChange={(e) =>
                 setProfile((p) =>
@@ -600,7 +603,7 @@ export function AdminDashboard() {
             />
             <Input
               label="Notes"
-              size="sm"
+              size="base"
               value={profile?.notes ?? ""}
               onChange={(e) =>
                 setProfile((p) => (p ? { ...p, notes: e.target.value } : null))
@@ -609,13 +612,13 @@ export function AdminDashboard() {
             <div className="space-y-1">
               <label
                 htmlFor="custom-instructions"
-                className="text-sm text-kumo-secondary"
+                className="text-base text-kumo-secondary"
               >
                 Custom Instructions
               </label>
               <textarea
                 id="custom-instructions"
-                className="w-full min-h-[100px] bg-kumo-elevated border border-kumo-line rounded-md px-3 py-2 text-sm text-kumo-default focus:outline-none focus:ring-1 focus:ring-kumo-accent resize-y"
+                className="w-full min-h-[100px] bg-kumo-elevated border border-kumo-line rounded-md px-3 py-2 text-base text-kumo-default focus:outline-none focus:ring-1 focus:ring-kumo-accent resize-y"
                 value={profile?.custom_instructions ?? ""}
                 onChange={(e) =>
                   setProfile((p) =>
@@ -626,7 +629,7 @@ export function AdminDashboard() {
             </div>
             <Button
               variant="primary"
-              size="sm"
+              size="base"
               onClick={saveProfile}
               disabled={!connected}
             >
@@ -639,7 +642,7 @@ export function AdminDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-7 gap-2 items-end">
               <Input
-                size="sm"
+                size="base"
                 placeholder="Name"
                 value={newPerson.name}
                 onChange={(e) =>
@@ -647,7 +650,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Relationship"
                 value={newPerson.relationship}
                 onChange={(e) =>
@@ -655,7 +658,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Notes"
                 value={newPerson.notes}
                 onChange={(e) =>
@@ -663,7 +666,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Phone"
                 value={newPerson.phone}
                 onChange={(e) =>
@@ -671,7 +674,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Email"
                 value={newPerson.email}
                 onChange={(e) =>
@@ -679,7 +682,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Address"
                 value={newPerson.address}
                 onChange={(e) =>
@@ -688,7 +691,7 @@ export function AdminDashboard() {
               />
               <Button
                 variant="primary"
-                size="sm"
+                size="base"
                 icon={<PlusIcon size={14} />}
                 onClick={createPerson}
                 disabled={!connected}
@@ -696,7 +699,7 @@ export function AdminDashboard() {
                 Add
               </Button>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead className="bg-kumo-control text-kumo-default">
                 <tr>
                   <th className="text-left px-3 py-2">ID</th>
@@ -717,7 +720,7 @@ export function AdminDashboard() {
                       <>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.name ?? "")}
                             onChange={(e) =>
                               setEditForm({ ...editForm, name: e.target.value })
@@ -726,7 +729,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.relationship ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -738,7 +741,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.notes ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -750,7 +753,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.phone ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -762,7 +765,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.email ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -774,7 +777,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.address ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -787,13 +790,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="primary"
-                            size="sm"
+                            size="base"
                             icon={<CheckIcon size={14} />}
                             onClick={() => savePersonEdit(p.id)}
                           />
                           <Button
                             variant="secondary"
-                            size="sm"
+                            size="base"
                             icon={<XIcon size={14} />}
                             onClick={cancelEdit}
                           />
@@ -810,13 +813,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<PencilSimpleIcon size={14} />}
                             onClick={() => startEdit(p)}
                           />
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<TrashIcon size={14} />}
                             onClick={() => deletePerson(p.id)}
                           />
@@ -834,7 +837,7 @@ export function AdminDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-5 gap-2 items-end">
               <Input
-                size="sm"
+                size="base"
                 placeholder="Occurred on (YYYY-MM-DD)"
                 value={newEvent.occurred_on}
                 onChange={(e) =>
@@ -842,7 +845,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Description"
                 value={newEvent.description}
                 onChange={(e) =>
@@ -850,7 +853,7 @@ export function AdminDashboard() {
                 }
               />
               <Select
-                size="sm"
+                size="base"
                 aria-label="Type"
                 value={newEvent.type}
                 onValueChange={(v) =>
@@ -863,7 +866,7 @@ export function AdminDashboard() {
                 <Select.Option value="system">system</Select.Option>
               </Select>
               <Select
-                size="sm"
+                size="base"
                 aria-label="Source"
                 value={newEvent.source}
                 onValueChange={(v) =>
@@ -876,7 +879,7 @@ export function AdminDashboard() {
               </Select>
               <Button
                 variant="primary"
-                size="sm"
+                size="base"
                 icon={<PlusIcon size={14} />}
                 onClick={createEvent}
                 disabled={!connected}
@@ -884,7 +887,7 @@ export function AdminDashboard() {
                 Add
               </Button>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead className="bg-kumo-control text-kumo-default">
                 <tr>
                   <th className="text-left px-3 py-2">ID</th>
@@ -906,7 +909,7 @@ export function AdminDashboard() {
                     <td className="px-3 py-2">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="base"
                         icon={<TrashIcon size={14} />}
                         onClick={() => deleteEvent(ev.id)}
                       />
@@ -922,7 +925,7 @@ export function AdminDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-7 gap-2 items-end">
               <Input
-                size="sm"
+                size="base"
                 placeholder="Name"
                 value={newRoutine.name}
                 onChange={(e) =>
@@ -930,7 +933,7 @@ export function AdminDashboard() {
                 }
               />
               <Select
-                size="sm"
+                size="base"
                 aria-label="Type"
                 value={newRoutine.type}
                 onValueChange={(v) =>
@@ -942,7 +945,7 @@ export function AdminDashboard() {
                 <Select.Option value="task">task</Select.Option>
               </Select>
               <Input
-                size="sm"
+                size="base"
                 placeholder="Time"
                 value={newRoutine.scheduled_time ?? ""}
                 onChange={(e) =>
@@ -953,7 +956,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Days"
                 value={newRoutine.days ?? ""}
                 onChange={(e) =>
@@ -961,7 +964,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Description"
                 value={newRoutine.description ?? ""}
                 onChange={(e) =>
@@ -969,7 +972,7 @@ export function AdminDashboard() {
                 }
               />
               <Select
-                size="sm"
+                size="base"
                 aria-label="Active"
                 value={String(newRoutine.active)}
                 onValueChange={(v) =>
@@ -981,7 +984,7 @@ export function AdminDashboard() {
               </Select>
               <Button
                 variant="primary"
-                size="sm"
+                size="base"
                 icon={<PlusIcon size={14} />}
                 onClick={createRoutine}
                 disabled={!connected}
@@ -989,7 +992,7 @@ export function AdminDashboard() {
                 Add
               </Button>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead className="bg-kumo-control text-kumo-default">
                 <tr>
                   <th className="text-left px-3 py-2">ID</th>
@@ -1010,7 +1013,7 @@ export function AdminDashboard() {
                       <>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.name ?? "")}
                             onChange={(e) =>
                               setEditForm({ ...editForm, name: e.target.value })
@@ -1019,7 +1022,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Select
-                            size="sm"
+                            size="base"
                             aria-label="Type"
                             value={String(editForm.type ?? "routine")}
                             onValueChange={(v) =>
@@ -1040,7 +1043,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.scheduled_time ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1052,7 +1055,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.days ?? "")}
                             onChange={(e) =>
                               setEditForm({ ...editForm, days: e.target.value })
@@ -1061,7 +1064,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.description ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1073,7 +1076,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Select
-                            size="sm"
+                            size="base"
                             aria-label="Active"
                             value={String(editForm.active ?? 1)}
                             onValueChange={(v) =>
@@ -1087,13 +1090,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="primary"
-                            size="sm"
+                            size="base"
                             icon={<CheckIcon size={14} />}
                             onClick={() => saveRoutineEdit(r.id)}
                           />
                           <Button
                             variant="secondary"
-                            size="sm"
+                            size="base"
                             icon={<XIcon size={14} />}
                             onClick={cancelEdit}
                           />
@@ -1112,13 +1115,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<PencilSimpleIcon size={14} />}
                             onClick={() => startEdit(r)}
                           />
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<TrashIcon size={14} />}
                             onClick={() => deleteRoutine(r.id)}
                           />
@@ -1136,7 +1139,7 @@ export function AdminDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-7 gap-2 items-end">
               <Input
-                size="sm"
+                size="base"
                 placeholder="Name"
                 value={newMedication.name}
                 onChange={(e) =>
@@ -1144,7 +1147,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Dosage"
                 value={newMedication.dosage ?? ""}
                 onChange={(e) =>
@@ -1152,7 +1155,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Times"
                 value={newMedication.scheduled_times}
                 onChange={(e) =>
@@ -1163,7 +1166,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Instructions"
                 value={newMedication.instructions ?? ""}
                 onChange={(e) =>
@@ -1174,7 +1177,7 @@ export function AdminDashboard() {
                 }
               />
               <Input
-                size="sm"
+                size="base"
                 placeholder="Prescriber"
                 value={newMedication.prescriber ?? ""}
                 onChange={(e) =>
@@ -1185,7 +1188,7 @@ export function AdminDashboard() {
                 }
               />
               <Select
-                size="sm"
+                size="base"
                 aria-label="Active"
                 value={String(newMedication.active)}
                 onValueChange={(v) =>
@@ -1197,7 +1200,7 @@ export function AdminDashboard() {
               </Select>
               <Button
                 variant="primary"
-                size="sm"
+                size="base"
                 icon={<PlusIcon size={14} />}
                 onClick={createMedication}
                 disabled={!connected}
@@ -1205,7 +1208,7 @@ export function AdminDashboard() {
                 Add
               </Button>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead className="bg-kumo-control text-kumo-default">
                 <tr>
                   <th className="text-left px-3 py-2">ID</th>
@@ -1226,7 +1229,7 @@ export function AdminDashboard() {
                       <>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.name ?? "")}
                             onChange={(e) =>
                               setEditForm({ ...editForm, name: e.target.value })
@@ -1235,7 +1238,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.dosage ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1247,7 +1250,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.scheduled_times ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1259,7 +1262,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.instructions ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1271,7 +1274,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.prescriber ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1283,7 +1286,7 @@ export function AdminDashboard() {
                         </td>
                         <td className="px-3 py-2">
                           <Select
-                            size="sm"
+                            size="base"
                             aria-label="Active"
                             value={String(editForm.active ?? 1)}
                             onValueChange={(v) =>
@@ -1297,13 +1300,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="primary"
-                            size="sm"
+                            size="base"
                             icon={<CheckIcon size={14} />}
                             onClick={() => saveMedicationEdit(m.id)}
                           />
                           <Button
                             variant="secondary"
-                            size="sm"
+                            size="base"
                             icon={<XIcon size={14} />}
                             onClick={cancelEdit}
                           />
@@ -1322,13 +1325,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<PencilSimpleIcon size={14} />}
                             onClick={() => startEdit(m)}
                           />
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<TrashIcon size={14} />}
                             onClick={() => deleteMedication(m.id)}
                           />
@@ -1343,7 +1346,7 @@ export function AdminDashboard() {
         )}
 
         {!loading && activeTab === "medlogs" && (
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead className="bg-kumo-control text-kumo-default">
               <tr>
                 <th className="text-left px-3 py-2">Medication</th>
@@ -1371,7 +1374,7 @@ export function AdminDashboard() {
           <div className="space-y-4">
             <div className="grid grid-cols-6 gap-2 items-end">
               <Input
-                size="sm"
+                size="base"
                 placeholder="Label"
                 value={newReminder.label}
                 onChange={(e) =>
@@ -1379,7 +1382,7 @@ export function AdminDashboard() {
                 }
               />
               <Select
-                size="sm"
+                size="base"
                 aria-label="Type"
                 value={newReminder.type}
                 onValueChange={(v) =>
@@ -1394,7 +1397,7 @@ export function AdminDashboard() {
               </Select>
               {newReminder.type === "once" ? (
                 <Input
-                  size="sm"
+                  size="base"
                   type="datetime-local"
                   placeholder="Scheduled for"
                   value={newReminder.scheduled_for}
@@ -1408,7 +1411,7 @@ export function AdminDashboard() {
               ) : (
                 <>
                   <Input
-                    size="sm"
+                    size="base"
                     placeholder="Days (e.g. mon,wed,fri)"
                     value={newReminder.recurrence_days}
                     onChange={(e) =>
@@ -1419,7 +1422,7 @@ export function AdminDashboard() {
                     }
                   />
                   <Input
-                    size="sm"
+                    size="base"
                     type="time"
                     placeholder="Time"
                     value={newReminder.recurrence_time}
@@ -1433,7 +1436,7 @@ export function AdminDashboard() {
                 </>
               )}
               <Select
-                size="sm"
+                size="base"
                 aria-label="Active"
                 value={String(newReminder.active)}
                 onValueChange={(v) =>
@@ -1445,7 +1448,7 @@ export function AdminDashboard() {
               </Select>
               <Button
                 variant="primary"
-                size="sm"
+                size="base"
                 icon={<PlusIcon size={14} />}
                 onClick={createReminder}
                 disabled={!connected}
@@ -1453,7 +1456,7 @@ export function AdminDashboard() {
                 Add
               </Button>
             </div>
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead className="bg-kumo-control text-kumo-default">
                 <tr>
                   <th className="text-left px-3 py-2">ID</th>
@@ -1473,7 +1476,7 @@ export function AdminDashboard() {
                       <>
                         <td className="px-3 py-2">
                           <Input
-                            size="sm"
+                            size="base"
                             value={String(editForm.label ?? "")}
                             onChange={(e) =>
                               setEditForm({
@@ -1488,7 +1491,7 @@ export function AdminDashboard() {
                         <td className="px-3 py-2">{r.recurrence}</td>
                         <td className="px-3 py-2">
                           <Select
-                            size="sm"
+                            size="base"
                             aria-label="Active"
                             value={String(editForm.active ?? 1)}
                             onValueChange={(v) =>
@@ -1505,13 +1508,13 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="primary"
-                            size="sm"
+                            size="base"
                             icon={<CheckIcon size={14} />}
                             onClick={() => saveReminderEdit(r.id)}
                           />
                           <Button
                             variant="secondary"
-                            size="sm"
+                            size="base"
                             icon={<XIcon size={14} />}
                             onClick={cancelEdit}
                           />
@@ -1529,20 +1532,20 @@ export function AdminDashboard() {
                         <td className="px-3 py-2 flex gap-1">
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<PlayIcon size={14} />}
                             onClick={() => triggerReminder(r.id)}
                             disabled={!connected}
                           />
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<PencilSimpleIcon size={14} />}
                             onClick={() => startEdit(r)}
                           />
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="base"
                             icon={<TrashIcon size={14} />}
                             onClick={() => deleteReminder(r.id)}
                           />
@@ -1559,13 +1562,13 @@ export function AdminDashboard() {
         {!loading && activeTab === "actions" && (
           <div className="space-y-6 max-w-xl">
             <div className="space-y-3">
-              <Text size="sm" bold>
+              <Text size="base" bold>
                 Scheduled Interactions
               </Text>
               <div className="flex flex-wrap gap-3">
                 <Button
                   variant="primary"
-                  size="sm"
+                  size="base"
                   icon={<SunIcon size={14} />}
                   onClick={sendBriefing}
                   disabled={!connected || sendingAction === "briefing"}
@@ -1576,7 +1579,7 @@ export function AdminDashboard() {
                 </Button>
                 <Button
                   variant="secondary"
-                  size="sm"
+                  size="base"
                   icon={<MoonIcon size={14} />}
                   onClick={sendCheckin}
                   disabled={!connected || sendingAction === "checkin"}
@@ -1589,12 +1592,12 @@ export function AdminDashboard() {
             </div>
 
             <div className="space-y-3">
-              <Text size="sm" bold>
+              <Text size="base" bold>
                 Custom Notification
               </Text>
               <div className="flex gap-2">
                 <Input
-                  size="sm"
+                  size="base"
                   placeholder="Type a message to send to the patient..."
                   value={customNotification}
                   onChange={(e) => setCustomNotification(e.target.value)}
@@ -1602,7 +1605,7 @@ export function AdminDashboard() {
                 />
                 <Button
                   variant="primary"
-                  size="sm"
+                  size="base"
                   icon={<MegaphoneIcon size={14} />}
                   onClick={sendCustomNotification}
                   disabled={
@@ -1627,14 +1630,14 @@ export function AdminDashboard() {
                   <Text size="base" bold>
                     Weekly Summary for {summaryData.profileName}
                   </Text>
-                  <Text size="sm" variant="secondary">
+                  <Text size="base" variant="secondary">
                     ({summaryData.weekStart} → {summaryData.weekEnd})
                   </Text>
                 </div>
 
                 {summaryData.helpRequests > 0 && (
                   <Surface className="p-4 border-l-4 border-l-kumo-danger">
-                    <Text size="sm" bold variant="error">
+                    <Text size="base" bold variant="error">
                       ⚠️ {summaryData.helpRequests} help request
                       {summaryData.helpRequests > 1 ? "s" : ""} this week
                     </Text>
@@ -1642,18 +1645,18 @@ export function AdminDashboard() {
                 )}
 
                 <div className="space-y-3">
-                  <Text size="sm" bold>
+                  <Text size="base" bold>
                     Medication Adherence
                   </Text>
                   {summaryData.medicationAdherence.length === 0 && (
-                    <Text size="sm" variant="secondary">
+                    <Text size="base" variant="secondary">
                       No medication logs for this week.
                     </Text>
                   )}
                   {summaryData.medicationAdherence.map((med) => (
                     <Surface key={med.name} className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <Text size="sm" bold>
+                        <Text size="base" bold>
                           {med.name}
                         </Text>
                         <Text size="xs" variant="secondary">
@@ -1677,11 +1680,11 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-3">
-                  <Text size="sm" bold>
+                  <Text size="base" bold>
                     Moods
                   </Text>
                   {summaryData.moods.length === 0 ? (
-                    <Text size="sm" variant="secondary">
+                    <Text size="base" variant="secondary">
                       No mood entries this week.
                     </Text>
                   ) : (
@@ -1697,11 +1700,11 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-3">
-                  <Text size="sm" bold>
+                  <Text size="base" bold>
                     Recent Events
                   </Text>
                   {summaryData.events.length === 0 ? (
-                    <Text size="sm" variant="secondary">
+                    <Text size="base" variant="secondary">
                       No events recorded this week.
                     </Text>
                   ) : (
@@ -1709,12 +1712,12 @@ export function AdminDashboard() {
                       {summaryData.events.map((ev) => (
                         <div
                           key={ev.id}
-                          className="flex items-start gap-3 text-sm border-b border-kumo-line pb-2"
+                          className="flex items-start gap-3 text-base border-b border-kumo-line pb-2"
                         >
-                          <span className="shrink-0 w-24 text-xs text-kumo-subtle">
+                          <span className="shrink-0 w-24 text-sm text-kumo-subtle">
                             {ev.occurred_on}
                           </span>
-                          <Text size="sm">{ev.description}</Text>
+                          <Text size="base">{ev.description}</Text>
                         </div>
                       ))}
                     </div>
@@ -1722,7 +1725,7 @@ export function AdminDashboard() {
                 </div>
               </>
             ) : (
-              <Text size="sm" variant="secondary">
+              <Text size="base" variant="secondary">
                 No summary data available.
               </Text>
             )}
@@ -1732,7 +1735,7 @@ export function AdminDashboard() {
         {!loading && activeTab === "notifications" && (
           <div className="space-y-4">
             {(agent.state?.notifications?.length ?? 0) === 0 ? (
-              <Text size="sm" variant="secondary">
+              <Text size="base" variant="secondary">
                 No active notifications for the patient.
               </Text>
             ) : (
@@ -1757,7 +1760,7 @@ export function AdminDashboard() {
                         {new Date(n.timestamp).toLocaleString()}
                       </Text>
                     </div>
-                    <p className="text-sm whitespace-pre-line text-kumo-default">
+                    <p className="text-base whitespace-pre-line text-kumo-default">
                       {n.text}
                     </p>
                     {n.actions.length > 0 && (
@@ -1772,7 +1775,7 @@ export function AdminDashboard() {
                     <div className="flex justify-end">
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="base"
                         icon={<XIcon size={14} />}
                         onClick={() => dismissPatientNotification(n.id)}
                       >
