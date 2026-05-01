@@ -28,6 +28,8 @@ import type {
   Person,
   Medication,
   Event,
+  Routine,
+  MedicationLog,
   WeeklySummaryPayload,
   MedicationAdherence
 } from "../types";
@@ -635,6 +637,180 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     };
 
     return formatWeeklySummary(payload);
+  }
+
+  // ── Admin callable methods ───────────────────────────────────────────
+
+  @callable()
+  async getProfileData(): Promise<Profile | null> {
+    const [row] = this.sql<Profile>`SELECT * FROM profile LIMIT 1`;
+    return row ?? null;
+  }
+
+  @callable()
+  async saveProfileData(
+    data: Partial<Omit<Profile, "setup_complete">>
+  ): Promise<void> {
+    if (data.name !== undefined)
+      await this.sql`UPDATE profile SET name = ${data.name}`;
+    if (data.age !== undefined)
+      await this.sql`UPDATE profile SET age = ${data.age}`;
+    if (data.city !== undefined)
+      await this.sql`UPDATE profile SET city = ${data.city}`;
+    if (data.timezone !== undefined)
+      await this.sql`UPDATE profile SET timezone = ${data.timezone}`;
+    if (data.notes !== undefined)
+      await this.sql`UPDATE profile SET notes = ${data.notes}`;
+  }
+
+  @callable()
+  async listPeople(): Promise<Person[]> {
+    return [...this.sql<Person>`SELECT * FROM people ORDER BY name`];
+  }
+
+  @callable()
+  async createPerson(
+    data: Omit<Person, "id" | "last_mentioned_at">
+  ): Promise<void> {
+    await this
+      .sql`INSERT INTO people (name, relationship, notes, phone, last_mentioned_at)
+      VALUES (${data.name}, ${data.relationship ?? null}, ${data.notes ?? null}, ${data.phone ?? null}, datetime('now'))`;
+  }
+
+  @callable()
+  async updatePersonById(
+    id: number,
+    data: Partial<Omit<Person, "id">>
+  ): Promise<void> {
+    if (data.name !== undefined)
+      await this.sql`UPDATE people SET name = ${data.name} WHERE id = ${id}`;
+    if (data.relationship !== undefined)
+      await this
+        .sql`UPDATE people SET relationship = ${data.relationship} WHERE id = ${id}`;
+    if (data.notes !== undefined)
+      await this.sql`UPDATE people SET notes = ${data.notes} WHERE id = ${id}`;
+    if (data.phone !== undefined)
+      await this.sql`UPDATE people SET phone = ${data.phone} WHERE id = ${id}`;
+  }
+
+  @callable()
+  async deletePersonById(id: number): Promise<void> {
+    await this.sql`DELETE FROM people WHERE id = ${id}`;
+  }
+
+  @callable()
+  async listEvents(limit = 50): Promise<Event[]> {
+    return [
+      ...this
+        .sql<Event>`SELECT * FROM events ORDER BY occurred_on DESC LIMIT ${limit}`
+    ];
+  }
+
+  @callable()
+  async createEvent(data: Omit<Event, "id">): Promise<void> {
+    await this.sql`INSERT INTO events (occurred_on, description, type, source)
+      VALUES (${data.occurred_on}, ${data.description}, ${data.type ?? "event"}, ${data.source ?? "user"})`;
+  }
+
+  @callable()
+  async deleteEventById(id: number): Promise<void> {
+    await this.sql`DELETE FROM events WHERE id = ${id}`;
+  }
+
+  @callable()
+  async listRoutines(): Promise<Routine[]> {
+    return [...this.sql<Routine>`SELECT * FROM routines ORDER BY name`];
+  }
+
+  @callable()
+  async createRoutine(data: Omit<Routine, "id">): Promise<void> {
+    await this
+      .sql`INSERT INTO routines (name, type, scheduled_time, days, description, active)
+      VALUES (${data.name}, ${data.type ?? "routine"}, ${data.scheduled_time ?? null}, ${data.days ?? null}, ${data.description ?? null}, ${data.active ?? 1})`;
+  }
+
+  @callable()
+  async updateRoutineById(
+    id: number,
+    data: Partial<Omit<Routine, "id">>
+  ): Promise<void> {
+    if (data.name !== undefined)
+      await this.sql`UPDATE routines SET name = ${data.name} WHERE id = ${id}`;
+    if (data.type !== undefined)
+      await this.sql`UPDATE routines SET type = ${data.type} WHERE id = ${id}`;
+    if (data.scheduled_time !== undefined)
+      await this
+        .sql`UPDATE routines SET scheduled_time = ${data.scheduled_time} WHERE id = ${id}`;
+    if (data.days !== undefined)
+      await this.sql`UPDATE routines SET days = ${data.days} WHERE id = ${id}`;
+    if (data.description !== undefined)
+      await this
+        .sql`UPDATE routines SET description = ${data.description} WHERE id = ${id}`;
+    if (data.active !== undefined)
+      await this
+        .sql`UPDATE routines SET active = ${data.active} WHERE id = ${id}`;
+  }
+
+  @callable()
+  async deleteRoutineById(id: number): Promise<void> {
+    await this.sql`DELETE FROM routines WHERE id = ${id}`;
+  }
+
+  @callable()
+  async listMedications(): Promise<Medication[]> {
+    return [...this.sql<Medication>`SELECT * FROM medications ORDER BY name`];
+  }
+
+  @callable()
+  async createMedication(data: Omit<Medication, "id">): Promise<void> {
+    await this
+      .sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber, active)
+      VALUES (${data.name}, ${data.dosage ?? null}, ${data.scheduled_times}, ${data.instructions ?? null}, ${data.prescriber ?? null}, ${data.active ?? 1})`;
+    this.scheduleMedicationReminders();
+  }
+
+  @callable()
+  async updateMedicationById(
+    id: number,
+    data: Partial<Omit<Medication, "id">>
+  ): Promise<void> {
+    if (data.name !== undefined)
+      await this
+        .sql`UPDATE medications SET name = ${data.name} WHERE id = ${id}`;
+    if (data.dosage !== undefined)
+      await this
+        .sql`UPDATE medications SET dosage = ${data.dosage} WHERE id = ${id}`;
+    if (data.scheduled_times !== undefined)
+      await this
+        .sql`UPDATE medications SET scheduled_times = ${data.scheduled_times} WHERE id = ${id}`;
+    if (data.instructions !== undefined)
+      await this
+        .sql`UPDATE medications SET instructions = ${data.instructions} WHERE id = ${id}`;
+    if (data.prescriber !== undefined)
+      await this
+        .sql`UPDATE medications SET prescriber = ${data.prescriber} WHERE id = ${id}`;
+    if (data.active !== undefined)
+      await this
+        .sql`UPDATE medications SET active = ${data.active} WHERE id = ${id}`;
+  }
+
+  @callable()
+  async deleteMedicationById(id: number): Promise<void> {
+    await this.sql`DELETE FROM medications WHERE id = ${id}`;
+  }
+
+  @callable()
+  async listMedicationLogs(
+    limit = 100
+  ): Promise<(MedicationLog & { medication_name: string | null })[]> {
+    return [
+      ...this.sql<MedicationLog & { medication_name: string | null }>`
+      SELECT ml.*, m.name as medication_name
+      FROM medication_logs ml
+      LEFT JOIN medications m ON m.id = ml.medication_id
+      ORDER BY ml.scheduled_for DESC
+      LIMIT ${limit}`
+    ];
   }
 
   async onRequest(request: Request): Promise<Response> {
