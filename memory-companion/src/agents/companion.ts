@@ -30,6 +30,7 @@ import type {
   Event,
   Routine,
   MedicationLog,
+  Reminder,
   WeeklySummaryPayload,
   MedicationAdherence
 } from "../types";
@@ -62,6 +63,8 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       .sql`CREATE TABLE IF NOT EXISTS medication_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, medication_id INTEGER NOT NULL, scheduled_for TEXT NOT NULL, status TEXT DEFAULT 'pending', responded_at TEXT, source TEXT DEFAULT 'user')`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS caregiver_links (caregiver_telegram_id TEXT NOT NULL, access_level TEXT DEFAULT 'write')`;
+    await this
+      .sql`CREATE TABLE IF NOT EXISTS reminders (id INTEGER PRIMARY KEY AUTOINCREMENT, label TEXT NOT NULL, type TEXT NOT NULL, schedule_id TEXT NOT NULL, scheduled_for TEXT, recurrence TEXT, active INTEGER DEFAULT 1)`;
 
     const [profile] = this.sql<{ setup_complete: number }>`
       SELECT setup_complete FROM profile LIMIT 1`;
@@ -141,11 +144,16 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       return new Response(card, { headers: { "Content-Type": "text/plain" } });
     }
 
-    const today = new Date().toLocaleDateString("en-GB", {
+    const now = new Date();
+    const today = now.toLocaleDateString("en-GB", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric"
+    });
+    const timeStr = now.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit"
     });
 
     this.extractAndStoreMemory(userText, model).catch(() => {});
@@ -153,7 +161,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     return streamText({
       model,
       messages: await convertToModelMessages(this.messages),
-      system: buildCompanionPrompt(today),
+      system: buildCompanionPrompt(today, timeStr),
       tools: makeRetrievalTools(this),
       stopWhen: stepCountIs(3)
     }).toUIMessageStreamResponse();
@@ -525,6 +533,30 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
         followUp
       ]
     });
+  }
+
+  async reminderFired({ reminderId }: { reminderId: number }) {
+    const [reminder] = this
+      .sql<Reminder>`SELECT * FROM reminders WHERE id = ${reminderId} LIMIT 1`;
+    if (!reminder || !reminder.active) return;
+
+    const notification = {
+      id: crypto.randomUUID(),
+      type: "reminder" as const,
+      text: `⏰ Reminder: ${reminder.label}`,
+      timestamp: new Date().toISOString(),
+      actions: [{ label: "✅ Got it", value: "dismiss" }]
+    };
+
+    this.setState({
+      ...this.state,
+      notifications: [...this.state.notifications, notification]
+    });
+
+    if (reminder.type === "once") {
+      await this.sql`UPDATE reminders SET active = 0 WHERE id = ${reminderId}`;
+    }
+    // recurring: cron re-fires automatically, no re-schedule needed
   }
 
   @callable()
@@ -931,12 +963,14 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       await this.sql`DELETE FROM medication_logs`;
       await this.sql`DELETE FROM medications`;
       await this.sql`DELETE FROM caregiver_links`;
+      await this.sql`DELETE FROM reminders`;
 
-      // Clear medication reminder schedules (keep briefing/checkin)
+      // Clear medication and reminder schedules (keep briefing/checkin)
       for (const s of this.getSchedules()) {
         if (
           s.callback === "medicationReminder" ||
-          s.callback === "medicationFollowUp"
+          s.callback === "medicationFollowUp" ||
+          s.callback === "reminderFired"
         ) {
           this.cancelSchedule(s.id);
         }

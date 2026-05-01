@@ -1332,10 +1332,7 @@ export function AdminDashboard() {
                     </Text>
                   )}
                   {summaryData.medicationAdherence.map((med) => (
-                    <Surface
-                      key={med.name}
-                      className="p-3 space-y-2"
-                    >
+                    <Surface key={med.name} className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <Text size="sm" bold>
                           {med.name}
