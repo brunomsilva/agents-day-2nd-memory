@@ -1,6 +1,6 @@
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import { callable } from "agents";
-import { createWorkersAI } from "workers-ai-provider";
+import { createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
   generateText,
@@ -73,8 +73,11 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   }
 
   async onChatMessage(_onFinish: unknown, _options?: OnChatMessageOptions) {
-    const workersai = createWorkersAI({ binding: this.env.AI });
-    const model = workersai("@cf/moonshotai/kimi-k2.6");
+    const openai = createOpenAI({
+      baseURL: "https://gateway.ai.cloudflare.com/v1/5a99d972b47766c8ea2134eec49a0902/agent-day/compat",
+      apiKey: this.env.KIMI_API_KEY,
+    });
+    const model = openai("kimi-k2");
 
     const lastMessage = this.messages[this.messages.length - 1];
     const userText =
@@ -202,7 +205,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   private async handleOnboardingMessage(
     userText: string,
-    model: ReturnType<ReturnType<typeof createWorkersAI>>
+    model: ReturnType<ReturnType<typeof createOpenAI>>
   ): Promise<Response> {
     const step = this.state.onboardingStep;
     const sys = buildOnboardingPrompt();
@@ -305,7 +308,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   private async extractAndStoreMemory(
     text: string,
-    model: ReturnType<ReturnType<typeof createWorkersAI>>
+    model: ReturnType<ReturnType<typeof createOpenAI>>
   ) {
     if (!text.trim()) return;
     await generateText({

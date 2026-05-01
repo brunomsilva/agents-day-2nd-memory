@@ -7,6 +7,7 @@ declare namespace Cloudflare {
 	}
 	interface Env {
 		AI: Ai;
+		KIMI_API_KEY: string;
 		CompanionAgent: DurableObjectNamespace /* CompanionAgent */;
 		CaregiverAgent: DurableObjectNamespace /* CaregiverAgent */;
 	}
