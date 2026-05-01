@@ -3,7 +3,8 @@ import { useAgent } from "agents/react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import type { MCPServersState } from "agents";
-import type { ChatAgent } from "./server";
+import type { CompanionAgent } from "./server";
+import type { CompanionState, Notification } from "./types";
 import {
   Badge,
   Button,
@@ -218,6 +219,41 @@ function ToolPartView({
   return null;
 }
 
+// ── Notification card ─────────────────────────────────────────────────
+
+function NotificationCard({
+  notification,
+  onAction,
+}: {
+  notification: Notification;
+  onAction: (action: string) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-kumo-line bg-blue-50 dark:bg-blue-950/20 p-4 mb-2">
+      <p className="text-sm leading-relaxed whitespace-pre-line mb-3 text-kumo-default">
+        {notification.text}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {notification.actions.map(action => (
+          <Button
+            key={action.value}
+            variant="primary"
+            size="sm"
+            onClick={() => onAction(action.value)}
+          >
+            {action.label}
+          </Button>
+        ))}
+        {notification.actions.length === 0 && (
+          <Button variant="secondary" size="sm" onClick={() => onAction('dismiss')}>
+            Dismiss
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main chat ─────────────────────────────────────────────────────────
 
 function Chat() {
@@ -242,8 +278,8 @@ function Chat() {
   const [isAddingServer, setIsAddingServer] = useState(false);
   const mcpPanelRef = useRef<HTMLDivElement>(null);
 
-  const agent = useAgent<ChatAgent>({
-    agent: "ChatAgent",
+  const agent = useAgent<CompanionAgent, CompanionState>({
+    agent: "CompanionAgent",
     onOpen: useCallback(() => setConnected(true), []),
     onClose: useCallback(() => setConnected(false), []),
     onError: useCallback(
@@ -291,7 +327,7 @@ function Chat() {
     if (!mcpName.trim() || !mcpUrl.trim()) return;
     setIsAddingServer(true);
     try {
-      await agent.stub.addServer(mcpName.trim(), mcpUrl.trim());
+      await (agent.stub as any).addServer(mcpName.trim(), mcpUrl.trim());
       setMcpName("");
       setMcpUrl("");
     } catch (e) {
@@ -303,7 +339,7 @@ function Chat() {
 
   const handleRemoveServer = async (serverId: string) => {
     try {
-      await agent.stub.removeServer(serverId);
+      await (agent.stub as any).removeServer(serverId);
     } catch (e) {
       console.error("Failed to remove MCP server:", e);
     }
@@ -652,6 +688,34 @@ function Chat() {
           </div>
         </div>
       </header>
+
+      {/* Notifications */}
+      {(agent.state?.notifications?.length ?? 0) > 0 && (
+        <div className="border-b border-kumo-line px-5 py-3 max-h-64 overflow-y-auto">
+          <div className="max-w-3xl mx-auto">
+            {agent.state!.notifications.map(n => (
+              <NotificationCard
+                key={n.id}
+                notification={n}
+                onAction={async (actionValue) => {
+                  if (n.type === 'briefing') {
+                    await agent.stub.recordMood(actionValue, n.id);
+                  } else if (n.type === 'medication') {
+                    await agent.stub.acknowledgeMedication(
+                      n.medicationId ?? 0,
+                      0,
+                      actionValue,
+                      n.id,
+                    );
+                  } else {
+                    await agent.stub.dismissNotification(n.id);
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
