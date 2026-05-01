@@ -576,6 +576,31 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   }
 
   @callable()
+  async triggerMorningBriefing(): Promise<void> {
+    await this.morningBriefing({} as Record<string, never>);
+  }
+
+  @callable()
+  async triggerEveningCheckin(): Promise<void> {
+    await this.eveningCheckin({} as Record<string, never>);
+  }
+
+  @callable()
+  async sendNotification(text: string): Promise<void> {
+    const notification = {
+      id: crypto.randomUUID(),
+      type: "custom" as const,
+      text,
+      timestamp: new Date().toISOString(),
+      actions: []
+    };
+    this.setState({
+      ...this.state,
+      notifications: [...this.state.notifications, notification]
+    });
+  }
+
+  @callable()
   async getWeeklySummary(): Promise<string> {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       .toISOString()
@@ -643,6 +668,74 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     };
 
     return formatWeeklySummary(payload);
+  }
+
+  @callable()
+  async getSummaryData(): Promise<WeeklySummaryPayload> {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
+
+    const [profile] = this.sql<{
+      name: string;
+    }>`SELECT name FROM profile LIMIT 1`;
+
+    const adherenceRows = this.sql<{
+      name: string;
+      status: string;
+      count: number;
+    }>`
+      SELECT m.name, ml.status, COUNT(*) as count
+      FROM medication_logs ml
+      JOIN medications m ON m.id = ml.medication_id
+      WHERE date(ml.scheduled_for) >= ${weekAgo}
+      GROUP BY m.name, ml.status`;
+
+    const medMap: Record<string, MedicationAdherence> = {};
+    for (const row of adherenceRows) {
+      if (!medMap[row.name]) {
+        medMap[row.name] = {
+          name: row.name,
+          taken: 0,
+          skipped: 0,
+          no_response: 0,
+          total: 0
+        };
+      }
+      const key = row.status as keyof Pick<
+        MedicationAdherence,
+        "taken" | "skipped" | "no_response"
+      >;
+      if (key in medMap[row.name]) medMap[row.name][key] += row.count;
+      medMap[row.name].total += row.count;
+    }
+
+    const moodRows = this.sql<{ description: string }>`
+      SELECT description FROM events
+      WHERE type = 'mood' AND occurred_on >= ${weekAgo}`;
+    const moods = moodRows.map((r) =>
+      r.description.replace("Morning mood: ", "")
+    );
+
+    const events = this.sql<Event>`
+      SELECT * FROM events
+      WHERE type = 'event' AND occurred_on >= ${weekAgo}
+      ORDER BY occurred_on`;
+
+    const [helpRow] = this.sql<{ count: number }>`
+      SELECT COUNT(*) as count FROM events
+      WHERE type = 'help_request' AND occurred_on >= ${weekAgo}`;
+
+    return {
+      profileName: profile?.name ?? "User",
+      weekStart: weekAgo,
+      weekEnd: today,
+      medicationAdherence: Object.values(medMap),
+      moods,
+      events,
+      helpRequests: helpRow?.count ?? 0
+    };
   }
 
   // ── Admin callable methods ───────────────────────────────────────────

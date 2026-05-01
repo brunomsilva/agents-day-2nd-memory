@@ -15,7 +15,7 @@ export type CompanionState = {
 
 export type Notification = {
   id: string;
-  type: "briefing" | "medication" | "checkin";
+  type: "briefing" | "medication" | "checkin" | "custom" | "reminder";
   text: string;
   timestamp: string;
   medicationId?: number;
@@ -101,4 +101,14 @@ export type MedicationAdherence = {
   skipped: number;
   no_response: number;
   total: number;
+};
+
+export type Reminder = {
+  id: number;
+  label: string;
+  type: "once" | "recurring";
+  schedule_id: string;
+  scheduled_for: string | null;
+  recurrence: string | null;
+  active: number;
 };
