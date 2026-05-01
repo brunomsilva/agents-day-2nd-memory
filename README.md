@@ -13,6 +13,8 @@ Memory Companion bridges the gap between patients experiencing early memory loss
 
 **For the caregiver**, the admin dashboard offers complete visibility and control over the patient's data: profile, people, events, routines, medications, and medication adherence logs.
 
+![Caregiver admin dashboard](assets/caretaker.png)
+
 ## Quick links
 
 | Resource | Link |
@@ -21,8 +23,6 @@ Memory Companion bridges the gap between patients experiencing early memory loss
 | **Slide deck** (PDF) | [`mia-pitch-deck.pdf`](./mia-pitch-deck.pdf) |
 | **Demo** | [`/demo`](http://localhost:5173/demo) — run `npm run dev` and open |
 | **Admin dashboard** | [`/admin`](http://localhost:5173/admin) — full CRUD on all SQLite tables |
-
-![Caregiver admin dashboard](assets/caretaker.png)
 
 ## Architecture
 
