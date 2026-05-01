@@ -8,7 +8,9 @@ import type {
   Event,
   Routine,
   Medication,
-  MedicationLog
+  MedicationLog,
+  WeeklySummaryPayload,
+  Notification
 } from "./types";
 import { Badge, Button, Surface, Text, Input, Select } from "@cloudflare/kumo";
 import {
@@ -23,7 +25,14 @@ import {
   TrashIcon,
   CheckIcon,
   XIcon,
-  ArrowClockwiseIcon
+  ArrowClockwiseIcon,
+  PaperPlaneRightIcon,
+  ChartBarIcon,
+  BellIcon,
+  SunIcon,
+  MoonIcon,
+  MegaphoneIcon,
+  TrendUpIcon
 } from "@phosphor-icons/react";
 
 type Tab =
@@ -32,7 +41,10 @@ type Tab =
   | "events"
   | "routines"
   | "medications"
-  | "medlogs";
+  | "medlogs"
+  | "actions"
+  | "summary"
+  | "notifications";
 
 const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   { key: "profile", label: "Profile", icon: <UserIcon size={14} /> },
@@ -40,7 +52,10 @@ const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   { key: "events", label: "Events", icon: <CalendarIcon size={14} /> },
   { key: "routines", label: "Routines", icon: <ClockIcon size={14} /> },
   { key: "medications", label: "Medications", icon: <PillIcon size={14} /> },
-  { key: "medlogs", label: "Med Logs", icon: <ClipboardTextIcon size={14} /> }
+  { key: "medlogs", label: "Med Logs", icon: <ClipboardTextIcon size={14} /> },
+  { key: "actions", label: "Actions", icon: <PaperPlaneRightIcon size={14} /> },
+  { key: "summary", label: "Summary", icon: <ChartBarIcon size={14} /> },
+  { key: "notifications", label: "Notifications", icon: <BellIcon size={14} /> }
 ];
 
 export function AdminDashboard() {
@@ -56,6 +71,12 @@ export function AdminDashboard() {
   const [medLogs, setMedLogs] = useState<
     (MedicationLog & { medication_name: string | null })[]
   >([]);
+
+  const [summaryData, setSummaryData] = useState<WeeklySummaryPayload | null>(
+    null
+  );
+  const [customNotification, setCustomNotification] = useState("");
+  const [sendingAction, setSendingAction] = useState<string | null>(null);
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<
@@ -132,6 +153,15 @@ export function AdminDashboard() {
           setMedLogs(list);
           break;
         }
+        case "summary": {
+          const data = await agent.stub.getSummaryData();
+          setSummaryData(data);
+          break;
+        }
+        case "actions":
+        case "notifications":
+          // No data to load; notifications come from agent.state
+          break;
       }
     } catch (e) {
       console.error("Failed to load data:", e);
@@ -299,6 +329,42 @@ export function AdminDashboard() {
     if (!agent.stub || !window.confirm("Delete this medication?")) return;
     await agent.stub.deleteMedicationById(id);
     await loadData();
+  };
+
+  const sendBriefing = async () => {
+    if (!agent.stub) return;
+    setSendingAction("briefing");
+    try {
+      await agent.stub.triggerMorningBriefing();
+    } finally {
+      setSendingAction(null);
+    }
+  };
+
+  const sendCheckin = async () => {
+    if (!agent.stub) return;
+    setSendingAction("checkin");
+    try {
+      await agent.stub.triggerEveningCheckin();
+    } finally {
+      setSendingAction(null);
+    }
+  };
+
+  const sendCustomNotification = async () => {
+    if (!agent.stub || !customNotification.trim()) return;
+    setSendingAction("notification");
+    try {
+      await agent.stub.sendNotification(customNotification.trim());
+      setCustomNotification("");
+    } finally {
+      setSendingAction(null);
+    }
+  };
+
+  const dismissPatientNotification = async (id: string) => {
+    if (!agent.stub) return;
+    await agent.stub.dismissNotification(id);
   };
 
   const renderActiveBadge = (active: number) => (
@@ -1112,6 +1178,238 @@ export function AdminDashboard() {
               ))}
             </tbody>
           </table>
+        )}
+
+        {!loading && activeTab === "actions" && (
+          <div className="space-y-6 max-w-xl">
+            <div className="space-y-3">
+              <Text size="sm" bold>
+                Scheduled Interactions
+              </Text>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<SunIcon size={14} />}
+                  onClick={sendBriefing}
+                  disabled={!connected || sendingAction === "briefing"}
+                >
+                  {sendingAction === "briefing"
+                    ? "Sending..."
+                    : "Send Morning Briefing"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<MoonIcon size={14} />}
+                  onClick={sendCheckin}
+                  disabled={!connected || sendingAction === "checkin"}
+                >
+                  {sendingAction === "checkin"
+                    ? "Sending..."
+                    : "Send Evening Check-in"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Text size="sm" bold>
+                Custom Notification
+              </Text>
+              <div className="flex gap-2">
+                <Input
+                  size="sm"
+                  placeholder="Type a message to send to the patient..."
+                  value={customNotification}
+                  onChange={(e) => setCustomNotification(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<MegaphoneIcon size={14} />}
+                  onClick={sendCustomNotification}
+                  disabled={
+                    !connected ||
+                    !customNotification.trim() ||
+                    sendingAction === "notification"
+                  }
+                >
+                  {sendingAction === "notification" ? "Sending..." : "Send"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!loading && activeTab === "summary" && (
+          <div className="space-y-6">
+            {summaryData ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <TrendUpIcon size={18} className="text-kumo-brand" />
+                  <Text size="base" bold>
+                    Weekly Summary for {summaryData.profileName}
+                  </Text>
+                  <Text size="sm" variant="secondary">
+                    ({summaryData.weekStart} → {summaryData.weekEnd})
+                  </Text>
+                </div>
+
+                {summaryData.helpRequests > 0 && (
+                  <Surface className="p-4 border-l-4 border-l-kumo-danger">
+                    <Text size="sm" bold variant="error">
+                      ⚠️ {summaryData.helpRequests} help request
+                      {summaryData.helpRequests > 1 ? "s" : ""} this week
+                    </Text>
+                  </Surface>
+                )}
+
+                <div className="space-y-3">
+                  <Text size="sm" bold>
+                    Medication Adherence
+                  </Text>
+                  {summaryData.medicationAdherence.length === 0 && (
+                    <Text size="sm" variant="secondary">
+                      No medication logs for this week.
+                    </Text>
+                  )}
+                  {summaryData.medicationAdherence.map((med) => (
+                    <Surface
+                      key={med.name}
+                      className="p-3 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <Text size="sm" bold>
+                          {med.name}
+                        </Text>
+                        <Text size="xs" variant="secondary">
+                          {med.taken} taken / {med.skipped} skipped /{" "}
+                          {med.no_response} no response
+                        </Text>
+                      </div>
+                      <div className="w-full bg-kumo-line rounded-full h-2.5">
+                        <div
+                          className="bg-kumo-success h-2.5 rounded-full"
+                          style={{
+                            width:
+                              med.total > 0
+                                ? `${(med.taken / med.total) * 100}%`
+                                : "0%"
+                          }}
+                        />
+                      </div>
+                    </Surface>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <Text size="sm" bold>
+                    Moods
+                  </Text>
+                  {summaryData.moods.length === 0 ? (
+                    <Text size="sm" variant="secondary">
+                      No mood entries this week.
+                    </Text>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {summaryData.moods.map((mood, i) => (
+                        <Badge key={i} variant="secondary">
+                          {mood}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <Text size="sm" bold>
+                    Recent Events
+                  </Text>
+                  {summaryData.events.length === 0 ? (
+                    <Text size="sm" variant="secondary">
+                      No events recorded this week.
+                    </Text>
+                  ) : (
+                    <div className="space-y-2">
+                      {summaryData.events.map((ev) => (
+                        <div
+                          key={ev.id}
+                          className="flex items-start gap-3 text-sm border-b border-kumo-line pb-2"
+                        >
+                          <span className="shrink-0 w-24 text-xs text-kumo-subtle">
+                            {ev.occurred_on}
+                          </span>
+                          <Text size="sm">{ev.description}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <Text size="sm" variant="secondary">
+                No summary data available.
+              </Text>
+            )}
+          </div>
+        )}
+
+        {!loading && activeTab === "notifications" && (
+          <div className="space-y-4">
+            {(agent.state?.notifications?.length ?? 0) === 0 ? (
+              <Text size="sm" variant="secondary">
+                No active notifications for the patient.
+              </Text>
+            ) : (
+              <div className="space-y-3">
+                {agent.state!.notifications.map((n: Notification) => (
+                  <Surface key={n.id} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        variant={
+                          n.type === "briefing"
+                            ? "primary"
+                            : n.type === "medication"
+                              ? "destructive"
+                              : n.type === "checkin"
+                                ? "secondary"
+                                : "success"
+                        }
+                      >
+                        {n.type}
+                      </Badge>
+                      <Text size="xs" variant="secondary">
+                        {new Date(n.timestamp).toLocaleString()}
+                      </Text>
+                    </div>
+                    <p className="text-sm whitespace-pre-line text-kumo-default">
+                      {n.text}
+                    </p>
+                    {n.actions.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {n.actions.map((a) => (
+                          <Badge key={a.value} variant="outline">
+                            {a.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        icon={<XIcon size={14} />}
+                        onClick={() => dismissPatientNotification(n.id)}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </Surface>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </Surface>
     </div>

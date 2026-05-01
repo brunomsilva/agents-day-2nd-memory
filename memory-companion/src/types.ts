@@ -15,7 +15,7 @@ export type CompanionState = {
 
 export type Notification = {
   id: string;
-  type: "briefing" | "medication" | "checkin";
+  type: "briefing" | "medication" | "checkin" | "custom";
   text: string;
   timestamp: string;
   medicationId?: number;
