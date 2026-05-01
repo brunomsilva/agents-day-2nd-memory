@@ -124,6 +124,28 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
         }
         return { found: true, medications: results };
       }
+    }),
+
+    getCurrentDateTime: tool({
+      description:
+        "Get the current date and time. Call when the user asks what time it is, what day it is, or what the current date is.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const now = new Date();
+        return {
+          date: now.toLocaleDateString("en-GB", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          }),
+          time: now.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit"
+          }),
+          iso: now.toISOString()
+        };
+      }
     })
   };
 }

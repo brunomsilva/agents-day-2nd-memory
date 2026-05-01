@@ -39,4 +39,21 @@ describe("makeRetrievalTools", () => {
       });
     });
   });
+
+  describe("getCurrentDateTime", () => {
+    it("returns date, time and iso fields", async () => {
+      const agent = { sql: vi.fn() } as any;
+      const tools = makeRetrievalTools(agent);
+      const result = (await tools.getCurrentDateTime.execute!(
+        {},
+        {} as any
+      )) as { date: string; time: string; iso: string };
+      expect(result).toHaveProperty("date");
+      expect(result).toHaveProperty("time");
+      expect(result).toHaveProperty("iso");
+      expect(typeof result.date).toBe("string");
+      expect(typeof result.time).toBe("string");
+      expect(typeof result.iso).toBe("string");
+    });
+  });
 });

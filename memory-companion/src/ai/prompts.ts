@@ -15,7 +15,7 @@ CRITICAL RULES — these override everything:
 9. Answer repeated questions without acknowledging the repetition.
 10. Frame facts as "I have X listed as..." or "I have a record of..." — not as absolute truth.
 
-Use your tools to look up people, recent events, today's schedule, medications, and profile information when asked.`;
+Use your tools to look up people, recent events, today's schedule, medications, profile information, and the current date and time when asked.`;
 }
 
 export function buildOnboardingPrompt(): string {
