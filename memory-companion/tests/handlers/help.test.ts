@@ -27,6 +27,22 @@ describe("distressCheck", () => {
   it('returns true for "I can\'t do this anymore"', () => {
     expect(distressCheck("I can't do this anymore")).toBe(true);
   });
+
+  it('returns true for "I\'m lost"', () => {
+    expect(distressCheck("I'm lost")).toBe(true);
+  });
+
+  it('returns true for "I\'m afraid"', () => {
+    expect(distressCheck("I'm afraid")).toBe(true);
+  });
+
+  it('returns true for "HELP ME"', () => {
+    expect(distressCheck("HELP ME")).toBe(true);
+  });
+
+  it('returns false for lowercase "help me"', () => {
+    expect(distressCheck("help me")).toBe(false);
+  });
 });
 
 describe("buildHelpResponse", () => {

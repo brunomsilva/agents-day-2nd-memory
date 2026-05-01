@@ -8,12 +8,20 @@ const DISTRESS_KEYWORDS = [
   "i am in danger",
   "i want to hurt myself",
   "i want to end it",
-  "i feel like dying"
+  "i feel like dying",
+  "i'm lost",
+  "i'm afraid",
+  "HELP ME"
 ];
 
 export function distressCheck(message: string): boolean {
   const lower = message.toLowerCase();
-  return DISTRESS_KEYWORDS.some((kw) => lower.includes(kw));
+  return DISTRESS_KEYWORDS.some((kw) => {
+    if (kw === kw.toUpperCase() && kw !== kw.toLowerCase()) {
+      return message.includes(kw);
+    }
+    return lower.includes(kw);
+  });
 }
 
 export function buildHelpResponse(
