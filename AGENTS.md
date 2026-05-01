@@ -2,7 +2,7 @@
 
 This repo contains a hackathon project — **Memory Companion**, a Cloudflare Agents-powered AI companion for people with early memory decline. There are two distinct top-level concerns:
 
-- `memory-companion/` — the actual app. **It is currently the unmodified `cloudflare/agents-starter` template** (a generic chat agent with weather/calculator/scheduling tools). The Memory Companion implementation has not yet been written into it.
+- `memory-companion/` — the actual app. Built from the `cloudflare/agents-starter` template but now fully implements the Memory Companion feature set (chat, scheduling, anti-hallucination retrieval, admin dashboard).
 - `docs/superpowers/specs/2026-05-01-memory-companion-design.md` — approved design spec (architecture, schema, prompts, scheduling, failure modes).
 - `docs/superpowers/plans/2026-05-01-memory-companion.md` — task-by-task implementation plan (file map + checkbox steps + TDD scaffolding for each module).
 - `.claude-design/slide-previews/` — deck style explorations (style-a/b/c.html), unrelated to the app.
@@ -32,7 +32,7 @@ Linting/formatting use **oxlint + oxfmt** (Rust-based), not ESLint/Prettier. Typ
 
 **Two Durable Object classes**, both with SQLite storage:
 
-- `CompanionAgent extends AIChatAgent<Env>` — one DO instance per user. Owns *all* memory (profile, people, events, routines, medications, medication_logs). Handles chat via `onChatMessage`, runs proactive scheduled interactions (morning briefing, evening check-in, medication reminders + 45-min follow-ups), and exposes `@callable()` methods consumed by the caregiver.
+- `CompanionAgent extends AIChatAgent<Env>` — one DO instance per user. Owns *all* memory (profile, people, events, routines, medications, medication_logs). Handles chat via `onChatMessage`, runs proactive scheduled interactions (morning briefing, evening check-in, medication reminders + 45-min follow-ups), and exposes `@callable()` methods consumed by the admin dashboard and (in Phase C) the caregiver.
 - `CaregiverAgent extends Agent<Env>` — Phase C stub. Stores a `linkedUserId`, gets a stub to the patient's `CompanionAgent`, calls callable methods to read/write memory. One-directional dependency: the patient agent has no reference to caregivers.
 
 Bindings (`memory-companion/wrangler.jsonc`):

@@ -36,6 +36,7 @@ This loads a pre-built profile (António in Lisbon, daughter Maria, one medicati
 | "I took my aspirin" | Extraction pass silently logs the medication event |
 | Medication reminder card → ✅ | Logs the dose as taken |
 | Morning briefing card (08:00) | Daily summary with mood buttons |
+| **Admin dashboard** | Click the **Admin** button in the top-right to view and edit all SQLite data (profile, people, events, routines, medications, med logs) |
 
 ### Trigger a briefing immediately (don't wait for 08:00)
 

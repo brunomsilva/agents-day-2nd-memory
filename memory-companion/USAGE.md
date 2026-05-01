@@ -46,7 +46,7 @@ each prompt in the chat input.
 After step 5, setup is marked complete and medication reminders are scheduled.
 
 > **Skipping onboarding for a demo.** Hit `POST /agents/companion-agent/<id>/seed`
-> (see §7) to drop in a demo profile (António in Lisbon, daughter Maria, family
+> (see §8) to drop in a demo profile (António in Lisbon, daughter Maria, family
 > doctor, one medication, one routine, one recent event) and jump straight to the
 > daily-use experience.
 
@@ -120,20 +120,56 @@ wording.
 
 ## 5. The header controls
 
-| Control         | What it does                                                                                                                    |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Connection dot  | Green = WebSocket connected, red = disconnected (auto-reconnects)                                                               |
-| 🐛 Debug toggle | Shows the raw JSON for each message — useful when debugging tool calls                                                          |
-| Theme toggle    | Light/dark mode (persisted in localStorage)                                                                                     |
-| MCP             | Add external Model Context Protocol servers as extra tools (advanced)                                                           |
-| 🗑 Clear        | Wipes the chat history. **This does not delete stored memories** — profile, people, events, medications, and schedules survive. |
+| Control          | What it does                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Connection dot   | Green = WebSocket connected, red = disconnected (auto-reconnects)                                                               |
+| 🐛 Debug toggle  | Shows the raw JSON for each message — useful when debugging tool calls                                                          |
+| Theme toggle     | Light/dark mode (persisted in localStorage)                                                                                     |
+| MCP              | Add external Model Context Protocol servers as extra tools (advanced)                                                           |
+| 🗑 Clear         | Wipes the chat history. **This does not delete stored memories** — profile, people, events, medications, and schedules survive. |
+| **Admin toggle** | Switch between **Chat** and **Admin** views. Admin shows the full data dashboard.                                               |
 
-## 6. Voice (Phase C — not yet built)
+## 6. Admin dashboard
+
+Click the **Admin** button in the top-right corner to open the data management view. This connects to the same `CompanionAgent` instance as chat and gives you full CRUD over every SQLite table.
+
+### 6a. Tabs
+
+| Tab             | What you can do                                                                                                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Profile**     | View and edit the single profile row (name, age, city, timezone, notes).                                                                                                                                   |
+| **People**      | Add, edit, and delete people. Inline editing — click the pencil to edit a row in place.                                                                                                                    |
+| **Events**      | Add and delete events. Events have a type (`event` / `mood` / `help_request` / `system`) and source (`user` / `caregiver` / `system`). No inline edit — delete and re-create if you need to change one.    |
+| **Routines**    | Add, edit, and delete routines. `type` can be `routine`, `appointment`, or `task`. Toggle **Active** / **Inactive** — inactive routines are still in the database but won't show up in the grounding card. |
+| **Medications** | Add, edit, and delete medications. `scheduled_times` is a comma-separated string like `08:00,20:00`. Toggle **Active** / **Inactive** — adding a medication automatically re-schedules reminder cron jobs. |
+| **Med Logs**    | Read-only view of medication adherence history, joined with medication names. Shows scheduled time, status (`taken` / `skipped` / `pending` / `no_response`), and when the user responded.                 |
+
+### 6b. How the data model works
+
+- **Profile** — exactly one row. Created during onboarding. `setup_complete = 1` is the flag that turns on scheduled briefings and medication reminders.
+- **People** — zero or more. `last_mentioned_at` is updated automatically by the chat extraction pass; you don't need to set it manually.
+- **Events** — zero or more. The chat extraction pass creates `event` and `mood` rows automatically. `help_request` rows are created by the distress handler.
+- **Routines** — zero or more. Routines with `active = 1` appear in the morning briefing and the grounding card.
+- **Medications** — zero or more. `active = 1` medications get reminder schedules. Changing `scheduled_times` in the UI does **not** automatically re-schedule reminders — you must delete and re-add the medication, or restart the dev server so `onStart()` re-registers schedules.
+- **Medication logs** — created automatically by reminder cards. Don't edit these manually; they are the audit trail.
+
+### 6c. Demo tip
+
+If you seed the demo profile (`POST /seed`) and then open the Admin view, you'll see:
+
+- Profile: António, Lisbon
+- People: Maria (daughter)
+- Medications: one active med with a scheduled time
+- Routines: one daily routine
+
+This is the fastest way to verify that the database layer is working correctly.
+
+## 7. Voice (Phase C — not yet built)
 
 Voice notes via Telegram and the caregiver-summary panel are pitched but not in
 this build. Demo paths today are chat-only.
 
-## 7. Operator / demo endpoints
+## 8. Operator / demo endpoints
 
 These are mounted on the agent and are useful for demos and tests. Replace
 `<id>` with whatever ID `useAgent` is using (default in the starter is
@@ -150,7 +186,7 @@ curl -X POST http://localhost:5173/agents/companion-agent/<id>/briefing
 curl http://localhost:5173/agents/companion-agent/<id>/summary
 ```
 
-## 8. Common tasks during development
+## 9. Common tasks during development
 
 ```bash
 npm run dev          # Vite dev server (UI + Worker on http://localhost:5173)
@@ -161,7 +197,7 @@ npm run types        # regenerate env.d.ts after editing wrangler.jsonc
 npm run deploy       # vite build && wrangler deploy
 ```
 
-## 9. Where things live
+## 10. Where things live
 
 ```
 src/
@@ -179,12 +215,13 @@ src/
   scheduling/
     medications.ts    # parseMedicationTimes, reminder/follow-up text
     summaries.ts      # Weekly caregiver summary
-  app.tsx             # React UI (chat + notification cards)
+  app.tsx             # React UI (chat + notification cards + admin dashboard)
+  admin.tsx           # Admin dashboard — full CRUD on all SQLite tables
   server.ts           # Worker entry — routes to the agent
   types.ts            # CompanionState, Profile, Person, Notification, ...
 ```
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 - **"I don't have that in my memory yet" for things you just told Mia.** The
   extraction pass is fire-and-forget and runs in parallel with the reply. If the
