@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mia — A Memory Companion · Hackathon Pitch</title>
+
+<!-- =========================================================
+     FONTS — Fraunces (display) + Work Sans (body)
+     Mixed style: B (Paper & Ink editorial layout) + C (Vintage Editorial typography)
+     ========================================================= -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,500;1,9..144,700&family=Work+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   THEME TOKENS — change here to retheme the entire deck
+   ========================================================= */
+:root {
+    /* Palette — cream paper + crimson editorial */
+    --paper:        #f7f3ea;
+    --paper-shade:  #efe9d8;
+    --paper-deep:   #e6dec7;
+    --ink:          #2a2a2a;
+    --ink-soft:     #5a564f;
+    --ink-faint:    #918a7c;
+    --rule:         #d8d1c0;
+
+    /* Pastel accent palette — lavender is also the awareness colour for memory care */
+    --lavender:     #9c8ec0;        /* primary accent — soft, dignified */
+    --lavender-soft:#d4c9e8;
+    --sage:         #8eb09c;        /* secondary — calm, present */
+    --sage-soft:    #c4dcce;
+    --rose:         #d4a5a5;        /* tertiary — warmth */
+    --rose-soft:    #efd4d4;
+    --butter:       #f0e2c8;        /* gentle highlight wash */
+
+    /* Legacy aliases — keep names so existing rules auto-inherit pastel values */
+    --crimson:      var(--lavender);
+    --tomato:       var(--rose);
+    --mustard:      var(--sage);
+    --warm:         var(--butter);
+
+    /* Typography */
+    --font-display: 'Fraunces', serif;
+    --font-body:    'Work Sans', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+
+    /* Sizing — viewport-clamped */
+    --title-size:    clamp(2.4rem, 7vw, 5.6rem);
+    --h2-size:       clamp(1.8rem, 4.5vw, 3.6rem);
+    --kicker-size:   clamp(1rem, 1.6vw, 1.3rem);
+    --body-size:     clamp(0.9rem, 1.25vw, 1.1rem);
+    --small-size:    clamp(0.72rem, 0.95vw, 0.88rem);
+    --rail-size:     clamp(0.7rem, 0.9vw, 0.85rem);
+
+    /* Spacing */
+    --slide-padding: clamp(1.2rem, 4vw, 4rem);
+    --content-gap:   clamp(0.8rem, 2vw, 2rem);
+    --element-gap:   clamp(0.4rem, 1vw, 1rem);
+
+    /* Animation */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --duration:      0.8s;
+}
+
+/* =========================================================
+   VIEWPORT FITTING — mandatory base styles
+   ========================================================= */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+body {
+    font-family: var(--font-body);
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+/* Each slide = exact viewport */
+.slide {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    position: relative;
+    padding: clamp(5vh, 7vh, 9vh) clamp(6vw, 9vw, 11vw);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--paper);
+    background-image:
+        radial-gradient(circle at 80% 10%, var(--lavender-soft), transparent 55%),
+        radial-gradient(circle at 10% 90%, var(--butter), transparent 55%);
+    background-size: 100% 100%;
+}
+
+/* Subtle tonal variations — pastel washes, not loud accents */
+.slide.tint-warm {
+    background-color: var(--paper);
+    background-image:
+        radial-gradient(circle at 75% 15%, var(--rose-soft), transparent 55%),
+        radial-gradient(circle at 5% 95%, var(--butter), transparent 50%);
+}
+.slide.tint-deep {
+    background-color: var(--paper);
+    background-image:
+        radial-gradient(circle at 80% 80%, var(--sage-soft), transparent 60%),
+        radial-gradient(circle at 5% 10%, var(--lavender-soft), transparent 50%);
+}
+
+/* =========================================================
+   LEGACY CHROME — kept harmless in case of reuse, but no
+   slide currently includes a masthead, colophon, or rail.
+   ========================================================= */
+.masthead {
+    display: none;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 12px;
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-soft);
+    z-index: 3;
+}
+.masthead .title { color: var(--crimson); font-weight: 700; }
+.masthead .meta  { color: var(--ink-soft); }
+
+.colophon {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--ink);
+    padding-top: 12px;
+    font-family: var(--font-body);
+    font-size: var(--small-size);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-soft);
+    z-index: 3;
+}
+.colophon .ornament {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--crimson);
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+    text-transform: none;
+    letter-spacing: 0;
+}
+.colophon .next { color: var(--ink); font-weight: 600; }
+
+/* Side rail — marginalia, rotated */
+.rail {
+    position: absolute;
+    right: clamp(1rem, 2vw, 1.6rem);
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: right center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: var(--rail-size);
+    color: var(--ink-soft);
+    letter-spacing: 0.18em;
+    opacity: 0.65;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* Slide number marker top-left, just below masthead */
+.section-num {
+    position: absolute;
+    top: clamp(8vh, 9vh, 10vh);
+    right: clamp(5vw, 7vw, 9vw);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(0.85rem, 1.05vw, 1rem);
+    color: var(--crimson);
+    letter-spacing: 0.05em;
+    z-index: 2;
+}
+
+/* =========================================================
+   TYPOGRAPHY — display + body
+   ========================================================= */
+.kicker {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: var(--kicker-size);
+    color: var(--crimson);
+    letter-spacing: 0.01em;
+    margin-bottom: clamp(10px, 1.4vh, 22px);
+}
+
+/* Acronym tagline — M·I·A reveal under the title */
+.acronym-tagline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1rem, 1.55vw, 1.35rem);
+    color: var(--ink-soft);
+    margin: clamp(14px, 2vh, 22px) 0 clamp(16px, 2.2vh, 26px);
+    display: flex;
+    align-items: baseline;
+    gap: clamp(10px, 1.2vw, 18px);
+    flex-wrap: wrap;
+    letter-spacing: 0.01em;
+}
+.acronym-tagline .initial {
+    color: var(--crimson);
+    font-weight: 900;
+    font-style: normal;
+    font-size: 1.18em;
+}
+.acronym-tagline .sep {
+    color: var(--ink-faint);
+    font-style: normal;
+    font-weight: 400;
+}
+.acronym-tagline .lead-rule {
+    width: clamp(28px, 3vw, 48px);
+    height: 1px;
+    background: var(--crimson);
+    align-self: center;
+    margin-right: clamp(2px, 0.4vw, 6px);
+    flex-shrink: 0;
+}
+
+h1, h2 {
+    font-family: var(--font-display);
+    color: var(--ink);
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+}
+
+h1 {
+    font-weight: 900;
+    font-size: var(--title-size);
+}
+h1 em, h2 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--crimson);
+}
+h1 .underline {
+    background: linear-gradient(120deg, transparent 0%, transparent 5%, var(--warm) 5%, var(--warm) 95%, transparent 95%);
+    padding: 0 clamp(4px, 0.6vw, 10px);
+}
+h1 .strike {
+    /* No strike on the redesign — kept as harmless inline span */
+    position: relative;
+    display: inline-block;
+}
+
+h2 {
+    font-weight: 700;
+    font-size: var(--h2-size);
+}
+
+p, li {
+    font-family: var(--font-body);
+    font-size: var(--body-size);
+    line-height: 1.55;
+    color: var(--ink-soft);
+    font-weight: 400;
+}
+p strong, li strong { color: var(--ink); font-weight: 600; }
+
+/* Deck paragraph — calm, no drop cap */
+.deck {
+    max-width: 640px;
+    font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+    line-height: 1.65;
+    color: var(--ink-soft);
+}
+
+/* Pull quote — soft pastel rule, not a stark border */
+.pull-quote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+    color: var(--ink);
+    line-height: 1.3;
+    padding: clamp(10px, 1.5vh, 18px) clamp(18px, 2.4vw, 28px);
+    margin: clamp(10px, 1.5vh, 20px) 0;
+    max-width: 720px;
+    border-left: 2px solid var(--lavender);
+    background: linear-gradient(to right, rgba(156,142,192,0.06), transparent);
+}
+
+/* =========================================================
+   GEOMETRIC DECORATIONS (Vintage Editorial signature)
+   ========================================================= */
+.deco-circle {
+    position: absolute;
+    border: 1.5px solid var(--lavender);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.55;
+}
+.deco-circle.spin { animation: spin 60s linear infinite; }
+.deco-circle .dot {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: var(--rose);
+    border-radius: 50%;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.deco-line {
+    position: absolute;
+    background: var(--lavender);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+}
+.deco-dot {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+}
+
+/* Soft pastel orb — atmospheric, not decorative */
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+}
+
+/* Signature — for the personal-note slide */
+.signature {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+    color: var(--lavender);
+    margin-top: clamp(1rem, 2vh, 1.8rem);
+    letter-spacing: 0.02em;
+}
+
+/* Quiet page indicator */
+.page-indicator {
+    position: absolute;
+    bottom: clamp(2vh, 3vh, 4vh);
+    left: clamp(6vw, 9vw, 11vw);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(0.78rem, 0.95vw, 0.92rem);
+    color: var(--ink-faint);
+    z-index: 3;
+    letter-spacing: 0.04em;
+}
+.page-indicator .num { color: var(--lavender); font-weight: 700; }
+
+/* =========================================================
+   LAYOUT HELPERS
+   ========================================================= */
+.body-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: min(1180px, 100%);
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+    padding: clamp(1rem, 3vh, 2.5rem) 0;
+    overflow: hidden;
+}
+
+.lede-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: end;
+    margin-top: clamp(0.8rem, 1.6vh, 1.6rem);
+}
+@media (max-width: 800px) { .lede-row { grid-template-columns: 1fr; } }
+
+/* Three-column / three-row pattern for lists of features */
+.tri-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1rem, 2vw, 2rem);
+    margin-top: clamp(1rem, 2.4vh, 2rem);
+}
+@media (max-width: 900px) { .tri-list { grid-template-columns: 1fr; } }
+
+.tri-list .item {
+    border-top: 2px solid var(--rule);
+    padding-top: clamp(10px, 1.4vh, 18px);
+}
+.tri-list .item:nth-child(1) { border-top-color: var(--lavender); }
+.tri-list .item:nth-child(2) { border-top-color: var(--sage); }
+.tri-list .item:nth-child(3) { border-top-color: var(--rose); }
+.tri-list .item .num {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-style: italic;
+    font-size: clamp(1.4rem, 2vw, 1.8rem);
+    color: var(--crimson);
+    margin-bottom: 6px;
+}
+.tri-list .item h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+    color: var(--ink);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+}
+.tri-list .item p {
+    font-size: clamp(0.82rem, 1.05vw, 0.95rem);
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+/* Feature list with bullet markers */
+.bullet-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.6rem, 1.4vh, 1rem);
+    margin-top: clamp(0.8rem, 1.4vh, 1.4rem);
+    max-width: 720px;
+}
+.bullet-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(0.6rem, 1vw, 1rem);
+    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+.bullet-list li::before {
+    content: '§';
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 700;
+    color: var(--crimson);
+    flex-shrink: 0;
+    font-size: 1.1em;
+    line-height: 1.2;
+}
+
+/* CTA box — softer, no hard black shadow */
+.cta-box {
+    display: inline-block;
+    border: 1.5px solid var(--lavender);
+    padding: 12px 24px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: clamp(0.78rem, 1vw, 0.92rem);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    margin-top: clamp(1rem, 2vh, 1.6rem);
+    box-shadow: 0 4px 14px rgba(156,142,192,0.18);
+}
+
+/* =========================================================
+   ENTRY ANIMATIONS — staggered reveal on .visible
+   ========================================================= */
+.reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity var(--duration) var(--ease-out-expo),
+        transform var(--duration) var(--ease-out-expo);
+}
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+.slide.visible .reveal:nth-child(1) { transition-delay: 0.10s; }
+.slide.visible .reveal:nth-child(2) { transition-delay: 0.25s; }
+.slide.visible .reveal:nth-child(3) { transition-delay: 0.40s; }
+.slide.visible .reveal:nth-child(4) { transition-delay: 0.55s; }
+.slide.visible .reveal:nth-child(5) { transition-delay: 0.70s; }
+.slide.visible .reveal:nth-child(6) { transition-delay: 0.85s; }
+
+.slide .rail, .slide .deco-circle, .slide .stamp,
+.slide .deco-line, .slide .deco-dot, .slide .section-num {
+    opacity: 0;
+    transition: opacity 1.2s var(--ease-out-expo);
+    transition-delay: 0.6s;
+}
+.slide.visible .rail,
+.slide.visible .deco-circle,
+.slide.visible .stamp,
+.slide.visible .deco-line,
+.slide.visible .deco-dot,
+.slide.visible .section-num { opacity: 1; }
+.slide.visible .rail { opacity: 0.65; }
+
+/* =========================================================
+   SLIDE 1 — TITLE
+   ========================================================= */
+.title-slide .body-wrap { justify-content: center; }
+.title-slide .deco-circle.title-circle {
+    width: clamp(140px, 18vw, 240px);
+    height: clamp(140px, 18vw, 240px);
+    top: 18vh;
+    right: 8vw;
+}
+.title-slide h1 { font-size: clamp(2.6rem, 8.5vw, 7.2rem); }
+
+/* =========================================================
+   SLIDE 4 — ARCHITECTURE diagram (CSS-drawn)
+   ========================================================= */
+.arch-diagram {
+    margin-top: clamp(0.8rem, 1.4vh, 1.4rem);
+    display: grid;
+    grid-template-rows: auto auto auto;
+    gap: clamp(0.5rem, 1vh, 0.9rem);
+    max-width: 920px;
+    width: 100%;
+    align-self: center;
+    font-family: var(--font-body);
+}
+.arch-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.6rem, 1.5vw, 1.2rem);
+}
+.arch-row.single { grid-template-columns: 1fr; }
+.arch-node {
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.4vw, 18px);
+    border-radius: 10px;
+    box-shadow: 0 2px 0 var(--paper-deep);
+    text-align: center;
+}
+.arch-node.accent {
+    background: var(--butter);
+    border-color: var(--rule);
+}
+.arch-node.crimson {
+    background: var(--lavender);
+    color: var(--paper);
+    border-color: var(--lavender);
+    box-shadow: 0 4px 14px rgba(156,142,192,0.3);
+}
+.arch-node.crimson .label,
+.arch-node.crimson .sub { color: var(--paper); }
+.arch-node .label {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.85rem, 1.15vw, 1.05rem);
+    color: var(--ink);
+    margin-bottom: 2px;
+    letter-spacing: -0.01em;
+}
+.arch-node .sub {
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 0.85vw, 0.78rem);
+    color: var(--ink-soft);
+    letter-spacing: 0;
+    text-transform: none;
+}
+.arch-arrow {
+    text-align: center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(1rem, 1.4vw, 1.3rem);
+    color: var(--crimson);
+    line-height: 1;
+}
+
+/* =========================================================
+   SLIDE 5 — RULES (anti-hallucination promise)
+   ========================================================= */
+.rules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.8rem, 1.6vw, 1.4rem);
+    margin-top: clamp(0.9rem, 1.8vh, 1.6rem);
+}
+@media (max-width: 900px) { .rules-grid { grid-template-columns: 1fr; } }
+.rule-card {
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    padding: clamp(14px, 2vh, 22px) clamp(14px, 1.5vw, 22px);
+    position: relative;
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(156,142,192,0.14);
+}
+.rule-card:nth-child(1) { border-top: 3px solid var(--lavender); }
+.rule-card:nth-child(2) { border-top: 3px solid var(--sage); }
+.rule-card:nth-child(3) { border-top: 3px solid var(--rose); }
+.rule-card .rule-num {
+    position: absolute;
+    top: clamp(-12px, -1vh, -10px);
+    left: clamp(12px, 1.4vw, 18px);
+    background: var(--paper);
+    padding: 0 8px;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-style: italic;
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    color: var(--crimson);
+}
+.rule-card h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: clamp(6px, 1vh, 10px);
+    letter-spacing: -0.01em;
+}
+.rule-card p {
+    font-size: clamp(0.78rem, 1vw, 0.92rem);
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+.rule-card code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    background: var(--paper-shade);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--ink);
+}
+
+/* =========================================================
+   SLIDE 6 — A DAY (timeline of three moments)
+   ========================================================= */
+.day-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.8rem, 1.6vw, 1.4rem);
+    margin-top: clamp(0.9rem, 1.6vh, 1.4rem);
+}
+@media (max-width: 900px) { .day-grid { grid-template-columns: 1fr; } }
+.day-card {
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    padding: clamp(14px, 1.8vh, 22px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 0.8vh, 10px);
+    border-radius: 14px;
+    box-shadow: 0 6px 22px rgba(156,142,192,0.12);
+}
+.day-card:nth-child(1) { border-top: 3px solid var(--butter); }
+.day-card:nth-child(2) { border-top: 3px solid var(--lavender); }
+.day-card:nth-child(3) { border-top: 3px solid var(--sage); }
+.day-card .time {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(0.75rem, 0.95vw, 0.88rem);
+    color: var(--crimson);
+    letter-spacing: 0.05em;
+}
+.day-card h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(0.98rem, 1.3vw, 1.18rem);
+    color: var(--ink);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+.day-card .preview {
+    background: var(--paper-shade);
+    border: 1px dashed var(--rule);
+    padding: clamp(8px, 1.2vh, 12px);
+    font-family: var(--font-body);
+    font-size: clamp(0.72rem, 0.9vw, 0.85rem);
+    color: var(--ink-soft);
+    line-height: 1.45;
+    border-radius: 2px;
+    flex: 1;
+}
+.day-card .preview strong { color: var(--ink); }
+.day-card .buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.day-card .buttons span {
+    font-family: var(--font-body);
+    font-size: clamp(0.66rem, 0.8vw, 0.74rem);
+    border: 1px solid var(--rule);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--paper);
+    color: var(--ink);
+    font-weight: 500;
+}
+.day-card .buttons span.primary {
+    background: var(--lavender);
+    color: var(--paper);
+    border-color: var(--lavender);
+}
+
+/* =========================================================
+   SLIDE 7 — CAREGIVER summary card
+   ========================================================= */
+.summary-card {
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    border-top: 3px solid var(--sage);
+    padding: clamp(14px, 2vh, 22px) clamp(16px, 2vw, 26px);
+    border-radius: 14px;
+    box-shadow: 0 8px 26px rgba(142,176,156,0.18);
+    margin-top: clamp(0.8rem, 1.4vh, 1.4rem);
+    max-width: 720px;
+    font-family: var(--font-body);
+}
+.summary-card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px;
+    margin-bottom: clamp(8px, 1.2vh, 14px);
+}
+.summary-card .head .who {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1rem, 1.35vw, 1.2rem);
+    color: var(--ink);
+}
+.summary-card .head .when {
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 0.88vw, 0.82rem);
+    color: var(--ink-soft);
+}
+.summary-section {
+    margin-bottom: clamp(8px, 1.2vh, 12px);
+}
+.summary-section .label {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(0.9rem, 1.1vw, 1.02rem);
+    color: var(--crimson);
+    margin-bottom: 4px;
+}
+.summary-section ul {
+    list-style: none;
+    padding-left: clamp(8px, 1vw, 14px);
+}
+.summary-section ul li {
+    font-size: clamp(0.78rem, 0.98vw, 0.92rem);
+    color: var(--ink-soft);
+    line-height: 1.5;
+    padding: 1px 0;
+}
+.summary-section ul li::before {
+    content: '·  ';
+    color: var(--crimson);
+    font-weight: 700;
+}
+.summary-section ul li .ok    { color: var(--sage); font-weight: 600; }
+.summary-section ul li .warn  { color: var(--rose); font-weight: 600; }
+
+/* =========================================================
+   SLIDE 8 — CLOSING differentiation grid
+   ========================================================= */
+.diff-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.7rem, 1.4vw, 1.2rem);
+    margin-top: clamp(0.9rem, 1.6vh, 1.4rem);
+}
+@media (max-width: 900px) { .diff-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .diff-grid { grid-template-columns: 1fr; } }
+.diff-item {
+    border-top: 3px solid var(--lavender);
+    padding-top: clamp(8px, 1.2vh, 12px);
+}
+.diff-item:nth-child(2) { border-top-color: var(--sage); }
+.diff-item:nth-child(3) { border-top-color: var(--rose); }
+.diff-item:nth-child(4) { border-top-color: var(--lavender); }
+.diff-item:nth-child(5) { border-top-color: var(--sage); }
+.diff-item:nth-child(6) { border-top-color: var(--rose); }
+.diff-item h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.25vw, 1.12rem);
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+}
+.diff-item p {
+    font-size: clamp(0.78rem, 0.98vw, 0.9rem);
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+/* =========================================================
+   PROGRESS BAR + NAV DOTS
+   ========================================================= */
+.progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--crimson);
+    width: 0%;
+    z-index: 100;
+    transition: width 0.2s ease;
+}
+
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1vw, 1rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1vh, 12px);
+    z-index: 100;
+}
+.nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+.nav-dot:hover { transform: scale(1.3); }
+.nav-dot.active { background: var(--crimson); border-color: var(--crimson); transform: scale(1.25); }
+
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.8rem, 1.5vh, 1.5rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(0.7rem, 0.9vw, 0.82rem);
+    color: var(--ink-faint);
+    pointer-events: none;
+    z-index: 100;
+    letter-spacing: 0.02em;
+}
+
+/* =========================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================= */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.8rem, 3vw, 2rem);
+        --content-gap: clamp(0.5rem, 1.5vw, 1rem);
+        --title-size: clamp(2rem, 6.5vw, 4.5rem);
+        --h2-size: clamp(1.4rem, 3.5vw, 2.8rem);
+    }
+    .slide { padding: 5vh clamp(5vw, 7vw, 9vw); }
+}
+@media (max-height: 600px) {
+    :root {
+        --title-size: clamp(1.8rem, 5.5vw, 3.5rem);
+        --h2-size: clamp(1.2rem, 3vw, 2.2rem);
+        --body-size: clamp(0.78rem, 1.1vw, 0.95rem);
+    }
+    .nav-dots, .keyboard-hint, .deco-circle, .stamp { display: none; }
+    .rail { display: none; }
+}
+@media (max-height: 500px) {
+    .colophon, .masthead { padding-top: 8px; padding-bottom: 8px; }
+}
+@media (max-width: 600px) {
+    :root { --title-size: clamp(1.6rem, 8vw, 3rem); }
+    .nav-dots { display: none; }
+    .rail { display: none; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ==============================================================
+     SLIDE 1 — TITLE
+     ============================================================== -->
+<section class="slide title-slide" id="slide-1">
+    <div class="orb" style="width: 40vw; height: 40vw; top: -10vw; right: -10vw; background: var(--lavender-soft);"></div>
+    <div class="orb" style="width: 32vw; height: 32vw; bottom: -12vw; left: -10vw; background: var(--rose-soft);"></div>
+    <div class="orb" style="width: 22vw; height: 22vw; top: 35vh; left: 30vw; background: var(--butter); opacity: 0.4;"></div>
+
+    <div class="deco-circle title-circle spin" style="width: clamp(110px, 12vw, 170px); height: clamp(110px, 12vw, 170px); top: 14vh; right: 11vw;"><span class="dot"></span></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">A hackathon project, made with care.</div>
+        <h1 class="reveal">A gentle companion<br/>who <em>pays attention.</em></h1>
+        <div class="acronym-tagline reveal">
+            <span class="lead-rule"></span>
+            <span><span class="initial">M</span>emory</span>
+            <span class="sep">·</span>
+            <span><span class="initial">I</span>dentity</span>
+            <span class="sep">·</span>
+            <span><span class="initial">A</span>ttention</span>
+        </div>
+        <p class="deck reveal">Mia is built on Cloudflare Agents to hold what matters &mdash; the people in your life, the rhythm of your days, and the small moments that make you <em>you</em>. She reaches out first, listens carefully, and never invents what she doesn't know.</p>
+    </main>
+
+    <div class="page-indicator"><span class="num">01</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 2 — A SHARED HUMAN EXPERIENCE
+     ============================================================== -->
+<section class="slide tint-warm" id="slide-2">
+    <div class="orb" style="width: 36vw; height: 36vw; top: -10vw; right: -12vw; background: var(--rose-soft);"></div>
+    <div class="orb" style="width: 28vw; height: 28vw; bottom: -8vw; left: -8vw; background: var(--butter);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">We all forget, sometimes.</div>
+        <h1 class="reveal" style="font-size: clamp(2rem, 6.2vw, 4.4rem);">Memory isn't only<br/>about <em>facts.</em> It's about<br/>feeling at <span class="underline">home in your day.</span></h1>
+
+        <div class="lede-row">
+            <p class="deck reveal">Around 55&nbsp;million people live with dementia. Many millions more cope with mild cognitive impairment, post&#8209;stroke memory loss, or simply the long arc of growing older. The hardest moments are rarely about a missing fact &mdash; they're about the small ache of asking again, and the wish to feel oriented in an ordinary day.</p>
+            <blockquote class="pull-quote reveal">"Did I already ask you that?"</blockquote>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">02</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 3 — A PERSONAL NOTE (why this exists)
+     ============================================================== -->
+<section class="slide" id="slide-why">
+    <div class="orb" style="width: 32vw; height: 32vw; top: -10vw; left: -10vw; background: var(--rose-soft);"></div>
+    <div class="orb" style="width: 28vw; height: 28vw; bottom: -10vw; right: -8vw; background: var(--lavender-soft); opacity: 0.55;"></div>
+    <div class="orb" style="width: 18vw; height: 18vw; top: 20vh; right: 18vw; background: var(--butter); opacity: 0.4;"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">A personal note.</div>
+        <h1 class="reveal" style="font-size: clamp(2rem, 5.6vw, 4rem);">Today I wanted<br/>to use AI to make life<br/>a little <em>gentler.</em></h1>
+
+        <p class="deck reveal" style="max-width: 720px; margin-top: clamp(0.6rem, 1.4vh, 1.2rem); line-height: 1.7;">
+            This one is personal.
+            <br/><br/>
+            I wanted to take the tools I work with every day &mdash; AI, agents, software &mdash; and put them in the service of something kind. This project is what came out of that.
+        </p>
+
+        <div class="signature reveal">— Bruno</div>
+    </main>
+
+    <div class="page-indicator"><span class="num">03</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 4 — MEET MIA
+     ============================================================== -->
+<section class="slide" id="slide-3">
+    <div class="orb" style="width: 34vw; height: 34vw; top: -10vw; right: -10vw; background: var(--lavender-soft);"></div>
+    <div class="orb" style="width: 24vw; height: 24vw; bottom: -8vw; left: -6vw; background: var(--sage-soft);"></div>
+    <div class="deco-circle spin" style="width: clamp(120px, 13vw, 170px); height: clamp(120px, 13vw, 170px); top: 14vh; right: 11vw;"><span class="dot"></span></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">A gentle presence that reaches out first.</div>
+        <h1 class="reveal" style="font-size: clamp(2rem, 6vw, 4.4rem);">Meet <em>Mia.</em><br/>She holds the day<br/>alongside <span class="underline">you.</span></h1>
+
+        <div class="tri-list">
+            <div class="item reveal">
+                <div class="num">i.</div>
+                <h3>She knows your people</h3>
+                <p>Names, relationships, the way Maria calls every Sunday and that João lives in Porto. A small, curated memory of the people who matter to you.</p>
+            </div>
+            <div class="item reveal">
+                <div class="num">ii.</div>
+                <h3>She reaches out first</h3>
+                <p>A morning briefing at eight. A gentle nudge at every dose. An evening check&#8209;in at seven. You never have to remember to ask.</p>
+            </div>
+            <div class="item reveal">
+                <div class="num">iii.</div>
+                <h3>She never invents</h3>
+                <p>When she doesn't know something, she says so &mdash; warmly, without filler. No guesses. No "I think." No plausible&#8209;sounding fictions about your life.</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">04</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 4 — ARCHITECTURE
+     ============================================================== -->
+<section class="slide tint-deep" id="slide-4">
+    <div class="orb" style="width: 30vw; height: 30vw; top: -10vw; left: -8vw; background: var(--lavender-soft);"></div>
+    <div class="orb" style="width: 26vw; height: 26vw; bottom: -10vw; right: -6vw; background: var(--sage-soft);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">One agent per person. One memory per agent.</div>
+        <h2 class="reveal">A <em>Durable Object</em><br/>with a long memory.</h2>
+
+        <div class="arch-diagram reveal">
+            <div class="arch-row">
+                <div class="arch-node"><div class="label">React UI</div><div class="sub">useAgentChat (hackathon)</div></div>
+                <div class="arch-node"><div class="label">Telegram</div><div class="sub">webhook (production)</div></div>
+            </div>
+            <div class="arch-arrow">↓ &nbsp; routeAgentRequest &nbsp; ↓</div>
+            <div class="arch-row">
+                <div class="arch-node crimson">
+                    <div class="label">CompanionAgent</div>
+                    <div class="sub">extends AIChatAgent · this.sql · this.schedule()</div>
+                </div>
+                <div class="arch-node accent">
+                    <div class="label">CaregiverAgent</div>
+                    <div class="sub">linkedUserId · Phase C · @callable()</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓ &nbsp; on every message: <em>Promise.all</em> &nbsp; ↓</div>
+            <div class="arch-row">
+                <div class="arch-node"><div class="label">Workers AI · chat</div><div class="sub">@cf/meta/llama-3.1-8b-instruct</div></div>
+                <div class="arch-node"><div class="label">Workers AI · extract</div><div class="sub">parallel call · write-only memory tools</div></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">05</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 6 — MEMORY MODEL (technical follow-up)
+     ============================================================== -->
+<section class="slide tint-warm" id="slide-memory">
+    <div class="orb" style="width: 32vw; height: 32vw; top: -10vw; right: -8vw; background: var(--sage-soft);"></div>
+    <div class="orb" style="width: 26vw; height: 26vw; bottom: -10vw; left: -10vw; background: var(--lavender-soft);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">How she knows what she knows.</div>
+        <h2 class="reveal">A small, <em>honest</em> memory.</h2>
+
+        <div class="arch-diagram reveal">
+            <div class="arch-row single">
+                <div class="arch-node accent">
+                    <div class="label">SQLite — one per person</div>
+                    <div class="sub">profile · people · events · routines · medications · medication_logs</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓ &nbsp; accessed only via tools &nbsp; ↓</div>
+
+            <div class="arch-row">
+                <div class="arch-node">
+                    <div class="label">Read tools</div>
+                    <div class="sub">lookupPerson · getRecentEvents · getTodaySchedule · getMedications</div>
+                </div>
+                <div class="arch-node">
+                    <div class="label">Write tools</div>
+                    <div class="sub">addPerson · addEvent · updateProfile · addMedication</div>
+                </div>
+            </div>
+            <div class="arch-arrow">↓ &nbsp; on every message: chat + parallel extraction &nbsp; ↓</div>
+
+            <div class="arch-row">
+                <div class="arch-node crimson">
+                    <div class="label">The model</div>
+                    <div class="sub">system prompt holds no facts · only repeats what tools returned</div>
+                </div>
+                <div class="arch-node accent">
+                    <div class="label">When silent</div>
+                    <div class="sub">"I don't have that in my memory yet."</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">06</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 7 — THE PROMISE (Honesty over fluency)
+     ============================================================== -->
+<section class="slide" id="slide-5">
+    <div class="orb" style="width: 32vw; height: 32vw; top: -10vw; right: -10vw; background: var(--lavender-soft);"></div>
+    <div class="orb" style="width: 26vw; height: 26vw; bottom: -10vw; left: -8vw; background: var(--rose-soft);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">Honesty over fluency.</div>
+        <h2 class="reveal" style="font-size: clamp(1.8rem, 5vw, 3.6rem);">When she doesn't know,<br/>she <em>says so.</em></h2>
+
+        <div class="rules-grid">
+            <div class="rule-card reveal">
+                <span class="rule-num">i.</span>
+                <h3>She begins each day knowing nothing.</h3>
+                <p>Mia carries no opinions about you, no assumptions, no defaults. Only what's been written down on her behalf.</p>
+            </div>
+            <div class="rule-card reveal">
+                <span class="rule-num">ii.</span>
+                <h3>Every fact has a source.</h3>
+                <p>If she names a person, a date, a dose &mdash; it came from something a person told her. Never from a guess.</p>
+            </div>
+            <div class="rule-card reveal">
+                <span class="rule-num">iii.</span>
+                <h3>Silence becomes honesty.</h3>
+                <p>When she doesn't have the answer, she says so: <em>"I don't have that in my memory yet &mdash; your family can help me add it."</em></p>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">07</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 6 — A DAY WITH MIA
+     ============================================================== -->
+<section class="slide tint-warm" id="slide-6">
+    <div class="orb" style="width: 32vw; height: 32vw; top: -10vw; right: -10vw; background: var(--butter);"></div>
+    <div class="orb" style="width: 24vw; height: 24vw; bottom: -8vw; left: -6vw; background: var(--lavender-soft);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">Three moments. One quiet companion.</div>
+        <h2 class="reveal">A gentle <em>rhythm</em> to the day.</h2>
+
+        <div class="day-grid">
+            <div class="day-card reveal">
+                <span class="time">08:00 · MORNING BRIEFING</span>
+                <h3>Today, gently laid out.</h3>
+                <div class="preview">
+                    <strong>Good morning, Dory.</strong><br/>
+                    Today is Thursday, 1 May 2026. You're at home in Lisbon.<br/>
+                    📋 Aricept (5mg) · Dr. Costa at 14:00 · Maria usually calls Thursdays.<br/>
+                    <em>How are you feeling this morning?</em>
+                </div>
+                <div class="buttons">
+                    <span class="primary">😊 Good</span>
+                    <span>😐 Okay</span>
+                    <span>😔 Not great</span>
+                </div>
+            </div>
+
+            <div class="day-card reveal">
+                <span class="time">14:00 · MEDICATION</span>
+                <h3>A nudge, with a way out.</h3>
+                <div class="preview">
+                    <strong>Time for your Aricept (5mg, 1 tablet). 💊</strong><br/>
+                    Dr. Silva prescribed this &mdash; take it with a glass of water.<br/>
+                    <em>(If no answer in 45 minutes, Mia gently follows up. After two skipped doses, the family sees it.)</em>
+                </div>
+                <div class="buttons">
+                    <span class="primary">✅ I took it</span>
+                    <span>⏰ Remind me</span>
+                    <span>❓ Not sure</span>
+                </div>
+            </div>
+
+            <div class="day-card reveal">
+                <span class="time">19:00 · EVENING CHECK&#8209;IN</span>
+                <h3>The day, quietly held.</h3>
+                <div class="preview">
+                    <strong>How was today, Dory?</strong><br/>
+                    <em>"João came over for coffee."</em><br/>
+                    Mia listens and remembers. Tomorrow morning's briefing will mention it. Next week's family summary will include it.
+                </div>
+                <div class="buttons">
+                    <span>Tell Mia about today</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">08</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 7 — PHASE C (Caregiver)
+     ============================================================== -->
+<section class="slide" id="slide-7">
+    <div class="orb" style="width: 30vw; height: 30vw; top: -10vw; right: -8vw; background: var(--sage-soft);"></div>
+    <div class="orb" style="width: 26vw; height: 26vw; bottom: -10vw; left: -8vw; background: var(--lavender-soft);"></div>
+    <div class="deco-circle" style="width: clamp(110px, 13vw, 170px); height: clamp(110px, 13vw, 170px); top: 14vh; right: 11vw; border-color: var(--sage);"><span class="dot" style="background: var(--lavender);"></span></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">For the people who love them.</div>
+        <h2 class="reveal" style="font-size: clamp(1.8rem, 4.8vw, 3.2rem);">Visibility, <em>not</em> surveillance.</h2>
+
+        <div class="lede-row" style="grid-template-columns: 1fr 1.2fr;">
+            <p class="deck reveal">Each Monday morning, or any time the family asks, they receive a short, gentle summary &mdash; medications kept, moods noted, the small events of the week. Nothing invented. Nothing alarming. Just a quiet window into how the week went.</p>
+
+            <div class="summary-card reveal">
+                <div class="head">
+                    <span class="who">Weekly summary · Dory</span>
+                    <span class="when">28 Apr → 4 May</span>
+                </div>
+                <div class="summary-section">
+                    <div class="label">💊 Medications</div>
+                    <ul>
+                        <li>Aricept (morning): <span class="ok">6/7 ✓</span> &mdash; missed Wednesday</li>
+                        <li>Aspirin (evening): <span class="ok">7/7 ✓</span></li>
+                    </ul>
+                </div>
+                <div class="summary-section">
+                    <div class="label">😊 Mood</div>
+                    <ul><li>Mostly Good or Okay &mdash; <span class="warn">Not great Tue, Wed</span></li></ul>
+                </div>
+                <div class="summary-section">
+                    <div class="label">📅 This week</div>
+                    <ul>
+                        <li>Mon &mdash; João visited for coffee</li>
+                        <li>Wed &mdash; Doctor appointment with Dr. Costa</li>
+                        <li>Fri &mdash; Maria called in the evening</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="page-indicator"><span class="num">09</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     SLIDE 8 — CLOSING / DIFFERENTIATION
+     ============================================================== -->
+<section class="slide tint-deep" id="slide-8">
+    <div class="orb" style="width: 36vw; height: 36vw; top: -10vw; right: -10vw; background: var(--lavender-soft);"></div>
+    <div class="orb" style="width: 28vw; height: 28vw; bottom: -10vw; left: -10vw; background: var(--rose-soft);"></div>
+
+    <main class="body-wrap">
+        <div class="kicker reveal">Generic assistants answer questions.</div>
+        <h1 class="reveal" style="font-size: clamp(2rem, 5.8vw, 4.6rem);">Mia helps you remember<br/>who <em>you are.</em></h1>
+
+        <div class="diff-grid">
+            <div class="diff-item reveal"><h3>She reaches out first.</h3><p>You never have to remember to ask. Mia keeps the rhythm of the day for you.</p></div>
+            <div class="diff-item reveal"><h3>Grounded in <em>your</em> memory.</h3><p>Her memory is yours, not the internet's. No cohort. No averages.</p></div>
+            <div class="diff-item reveal"><h3>Honest when she doesn't know.</h3><p>She works only from what's been told to her. By design.</p></div>
+            <div class="diff-item reveal"><h3>Repetition is welcome.</h3><p>Every question answered as if it's the first time. Always.</p></div>
+            <div class="diff-item reveal"><h3>Family sees, never spies.</h3><p>A weekly summary, not a feed. Trust over telemetry.</p></div>
+            <div class="diff-item reveal"><h3>Richer with every day.</h3><p>The more you tell her, the better she remembers &mdash; quietly, in the background.</p></div>
+        </div>
+
+        <div class="acronym-tagline reveal" style="margin-top: clamp(14px, 2vh, 22px);">
+            <span class="lead-rule"></span>
+            <span><span class="initial">M</span>emory</span>
+            <span class="sep">·</span>
+            <span><span class="initial">I</span>dentity</span>
+            <span class="sep">·</span>
+            <span><span class="initial">A</span>ttention</span>
+        </div>
+
+        <div class="cta-box reveal">Built in 6 hours · Cloudflare Agents · Workers AI</div>
+    </main>
+
+    <div class="page-indicator"><span class="num">10</span> &nbsp;/&nbsp; 10</div>
+</section>
+
+<!-- ==============================================================
+     CHROME — progress bar, nav dots, keyboard hint
+     ============================================================== -->
+<div class="progress-bar"></div>
+<nav class="nav-dots" aria-label="Slide navigation"></nav>
+<div class="keyboard-hint">↑ ↓ &nbsp;or&nbsp; Space &nbsp;to navigate</div>
+
+<script>
+/* ==============================================================
+   SLIDE PRESENTATION CONTROLLER
+   ============================================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.current = 0;
+        this.progressBar = document.querySelector('.progress-bar');
+        this.navDotsContainer = document.querySelector('.nav-dots');
+
+        this.setupNavDots();
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupScroll();
+    }
+
+    /* Build dots — clear first to avoid duplicates if file is re-opened */
+    setupNavDots() {
+        this.navDotsContainer.innerHTML = '';
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.className = 'nav-dot';
+            dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            dot.addEventListener('click', () => this.goTo(i));
+            this.navDotsContainer.appendChild(dot);
+        });
+        this.dots = Array.from(this.navDotsContainer.children);
+        this.updateDots();
+    }
+
+    /* Reveal animations as slides enter viewport */
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    this.current = this.slides.indexOf(entry.target);
+                    this.updateDots();
+                    this.updateProgress();
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach((s) => observer.observe(s));
+    }
+
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            const keysNext = ['ArrowDown', 'ArrowRight', 'PageDown', ' '];
+            const keysPrev = ['ArrowUp', 'ArrowLeft', 'PageUp'];
+            if (keysNext.includes(e.key)) {
+                e.preventDefault();
+                this.goTo(Math.min(this.current + 1, this.slides.length - 1));
+            } else if (keysPrev.includes(e.key)) {
+                e.preventDefault();
+                this.goTo(Math.max(this.current - 1, 0));
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                this.goTo(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                this.goTo(this.slides.length - 1);
+            }
+        });
+    }
+
+    /* Touch / swipe support */
+    setupTouchNav() {
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        document.addEventListener('touchend', (e) => {
+            const dy = startY - e.changedTouches[0].clientY;
+            if (Math.abs(dy) < 60) return;
+            if (dy > 0) this.goTo(Math.min(this.current + 1, this.slides.length - 1));
+            else        this.goTo(Math.max(this.current - 1, 0));
+        }, { passive: true });
+    }
+
+    setupScroll() {
+        document.addEventListener('scroll', () => this.updateProgress(), { passive: true });
+    }
+
+    goTo(index) {
+        this.current = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        this.updateDots();
+    }
+
+    updateDots() {
+        this.dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === this.current);
+        });
+    }
+
+    updateProgress() {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        this.progressBar.style.width = pct + '%';
+    }
+}
+
+new SlidePresentation();
+</script>
+
+</body>
+</html>
