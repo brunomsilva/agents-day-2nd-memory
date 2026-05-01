@@ -6,7 +6,7 @@
 
 **Architecture:** One `CompanionAgent` (AIChatAgent) Durable Object per user owns all SQLite memory, handles chat, and runs scheduled proactive messages. A fire-and-forget Workers AI call extracts new facts from each user message in parallel with the response. All facts are accessed via retrieval tools — never from the system prompt — to prevent hallucination.
 
-**Tech Stack:** TypeScript, Cloudflare Agents SDK (`agents`), Workers AI (`workers-ai-provider`, `@cf/meta/llama-3.1-8b-instruct`), Vercel AI SDK (`ai`), Zod, Vitest
+**Tech Stack:** TypeScript, Cloudflare Agents SDK (`agents`), Workers AI (`workers-ai-provider`, `@cf/moonshotai/kimi-k2.6`), Vercel AI SDK (`ai`), Zod, Vitest
 
 ---
 
@@ -136,8 +136,11 @@ git commit -m "feat: scaffold project with Cloudflare agents-starter"
 - [ ] **Step 1: Create `src/types.ts`**
 
 ```typescript
+export type OnboardingStep = 'name' | 'city' | 'timezone' | 'person' | 'medication' | 'done';
+
 export type CompanionState = {
   setupComplete: boolean;
+  onboardingStep: OnboardingStep;
   notifications: Notification[];
   medicationScheduleIds: Record<string, string>;
   summaryScheduleId?: string;
@@ -666,12 +669,12 @@ describe('buildCompanionPrompt', () => {
 });
 
 describe('buildOnboardingPrompt', () => {
-  it('instructs model to collect name', () => {
-    expect(buildOnboardingPrompt()).toContain('name');
+  it('establishes Mia as the assistant name', () => {
+    expect(buildOnboardingPrompt()).toContain('Mia');
   });
 
-  it('mentions tool use for saving', () => {
-    expect(buildOnboardingPrompt()).toContain('tool');
+  it('instructs the model to be warm and brief', () => {
+    expect(buildOnboardingPrompt()).toContain('warm');
   });
 });
 
@@ -718,19 +721,8 @@ Use your tools to look up people, recent events, today's schedule, and medicatio
 }
 
 export function buildOnboardingPrompt(): string {
-  return `You are a gentle memory companion named Mia, meeting a new user for the first time.
-
-Collect setup information one question at a time. Ask only ONE question per message.
-
-Sequence:
-1. Ask for their name → use the saveProfile tool with field "name"
-2. Ask what city they live in → use saveProfile with field "city"
-3. Ask preferred timezone (offer: "Europe/Lisbon", "America/New_York", "Europe/London") → saveProfile with field "timezone"
-4. Ask about one important person (name + relationship) → use the addPerson tool
-5. Ask if they take any medications (name + time) → use the addMedication tool
-6. Call the completeSetup tool when done
-
-Be warm and unhurried. After each answer, confirm what you saved before asking the next question.`;
+  return `You are Mia, a gentle memory companion helping someone get set up.
+Be warm, brief, and reassuring. One short acknowledgment, then the question.`;
 }
 
 export function buildExtractionPrompt(): string {
@@ -799,9 +791,10 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
       description: 'Get events logged in recent days. Call when asked what happened recently or on a specific day.',
       parameters: z.object({ days: z.number().default(3) }),
       execute: async ({ days }) => {
+        const cutoff = new Date(Date.now() - days * 86_400_000).toISOString().split('T')[0];
         const events = agent.sql<{ occurred_on: string; description: string }>`
           SELECT occurred_on, description FROM events
-          WHERE occurred_on >= date('now', ${`-${days} days`})
+          WHERE occurred_on >= ${cutoff}
           AND type = 'event'
           ORDER BY occurred_on DESC
           LIMIT 10`;
@@ -956,15 +949,6 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
       },
     }),
 
-    completeSetup: tool({
-      description: 'Mark onboarding as complete. Call this after collecting name, city, timezone, first person, and first medication.',
-      parameters: z.object({}),
-      execute: async () => {
-        agent.sql`UPDATE profile SET setup_complete = 1`;
-        agent.setState({ ...agent.state, setupComplete: true });
-        return { done: true };
-      },
-    }),
   };
 }
 ```
@@ -1021,6 +1005,7 @@ import type { Env } from '../server';
 export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   initialState: CompanionState = {
     setupComplete: false,
+    onboardingStep: 'name',
     notifications: [],
     medicationScheduleIds: {},
   };
@@ -1049,7 +1034,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   async onChatMessage() {
     const workersai = createWorkersAI({ binding: this.env.AI });
-    const model = workersai('@cf/meta/llama-3.1-8b-instruct');
+    const model = workersai('@cf/moonshotai/kimi-k2.6');
 
     const lastMessage = this.messages[this.messages.length - 1];
     const userText = typeof lastMessage?.content === 'string' ? lastMessage.content : '';
@@ -1069,13 +1054,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     }
 
     if (!this.state.setupComplete) {
-      return streamText({
-        model,
-        messages: convertToModelMessages(this.messages),
-        system: buildOnboardingPrompt(),
-        tools: makeExtractionTools(this),
-        maxSteps: 5,
-      }).toUIMessageStreamResponse();
+      return this.handleOnboardingMessage(userText, model);
     }
 
     const isGroundingRequest = /what('s| is) today|where am i|what day/i.test(userText);
@@ -1138,6 +1117,108 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       ORDER BY occurred_on DESC LIMIT 2`;
 
     return { meds, routines, recentEvents };
+  }
+
+  private parseTimezone(input: string): string {
+    const lower = input.toLowerCase();
+    if (lower.includes('lisbon') || lower.includes('portugal')) return 'Europe/Lisbon';
+    if (lower.includes('london') || lower.includes('uk')) return 'Europe/London';
+    if (lower.includes('new york') || lower.includes('eastern')) return 'America/New_York';
+    if (lower.includes('los angeles') || lower.includes('pacific')) return 'America/Los_Angeles';
+    if (input.includes('/')) return input.trim();
+    return 'UTC';
+  }
+
+  private async handleOnboardingMessage(
+    userText: string,
+    model: ReturnType<ReturnType<typeof createWorkersAI>>,
+  ): Promise<Response> {
+    const step = this.state.onboardingStep;
+    const sys = buildOnboardingPrompt();
+
+    switch (step) {
+      case 'name': {
+        if (userText.trim()) {
+          const existing = this.sql<{ name: string }>`SELECT name FROM profile LIMIT 1`;
+          if (existing.length === 0) {
+            this.sql`INSERT INTO profile (name, city, timezone) VALUES ('', '', 'UTC')`;
+          }
+          this.sql`UPDATE profile SET name = ${userText.trim()}`;
+          this.setState({ ...this.state, onboardingStep: 'city' });
+          return streamText({
+            model,
+            prompt: `The user's name is "${userText.trim()}". Acknowledge warmly, then ask what city they live in.`,
+            system: sys,
+          }).toUIMessageStreamResponse();
+        }
+        return streamText({
+          model,
+          prompt: 'Greet the user as Mia and ask for their name.',
+          system: sys,
+        }).toUIMessageStreamResponse();
+      }
+
+      case 'city': {
+        this.sql`UPDATE profile SET city = ${userText.trim()}`;
+        this.setState({ ...this.state, onboardingStep: 'timezone' });
+        return streamText({
+          model,
+          prompt: `City saved as "${userText.trim()}". Acknowledge, then ask for their timezone. Suggest: Europe/Lisbon, America/New_York, Europe/London, or they can say their city again.`,
+          system: sys,
+        }).toUIMessageStreamResponse();
+      }
+
+      case 'timezone': {
+        const tz = this.parseTimezone(userText);
+        this.sql`UPDATE profile SET timezone = ${tz}`;
+        this.setState({ ...this.state, onboardingStep: 'person' });
+        return streamText({
+          model,
+          prompt: `Timezone set to "${tz}". Acknowledge, then ask about one important person in their life — name and relationship (e.g. daughter, doctor).`,
+          system: sys,
+        }).toUIMessageStreamResponse();
+      }
+
+      case 'person': {
+        await generateText({
+          model,
+          prompt: userText,
+          system: buildExtractionPrompt(),
+          tools: { addPerson: makeExtractionTools(this).addPerson },
+          maxSteps: 2,
+        });
+        this.setState({ ...this.state, onboardingStep: 'medication' });
+        return streamText({
+          model,
+          prompt: 'Person saved. Acknowledge warmly, then ask if they take any regular medications — name and time of day. They can say "no" to skip.',
+          system: sys,
+        }).toUIMessageStreamResponse();
+      }
+
+      case 'medication': {
+        const skipped = /^(no|none|nope|not really|i don't|i do not)/i.test(userText.trim());
+        if (!skipped) {
+          await generateText({
+            model,
+            prompt: userText,
+            system: buildExtractionPrompt(),
+            tools: { addMedication: makeExtractionTools(this).addMedication },
+            maxSteps: 2,
+          });
+        }
+        this.sql`UPDATE profile SET setup_complete = 1`;
+        this.setState({ ...this.state, setupComplete: true, onboardingStep: 'done' });
+        await this.scheduleMedicationReminders();
+        return streamText({
+          model,
+          prompt: "Setup complete. Give a warm one-sentence welcome. Let them know they can type anything or ask 'what's today?' to get oriented.",
+          system: sys,
+        }).toUIMessageStreamResponse();
+      }
+
+      default:
+        return new Response('Setup already complete.', { status: 200 });
+    }
   }
 
   private async extractAndStoreMemory(
@@ -1848,7 +1929,7 @@ git commit -m "chore: all tests passing, golden path verified, MVP complete"
 | Anti-hallucination: tool-gated fact retrieval | Tasks 7, 9 |
 | No facts in system prompt (only name/city/date) | Task 6 |
 | Fact attribution language in prompt | Task 6 |
-| Onboarding: sequential AI-driven questions | Task 9 |
+| Onboarding: state machine (deterministic steps, AI for phrasing only) | Task 9 |
 | Morning briefing cron | Task 9 |
 | Evening check-in cron | Task 9 |
 | Grounding card ("what's today?") | Task 9 |
