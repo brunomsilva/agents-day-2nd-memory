@@ -14,6 +14,7 @@ import {
   Text
 } from "@cloudflare/kumo";
 import { AdminDashboard } from "./admin";
+import { DemoPage } from "./demo";
 import { Toasty, useKumoToastManager } from "@cloudflare/kumo/components/toast";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
@@ -33,7 +34,8 @@ import {
   BugIcon,
   XIcon,
   PaperclipIcon,
-  ImageIcon
+  ImageIcon,
+  PlayIcon
 } from "@phosphor-icons/react";
 
 // ── Attachment helpers ────────────────────────────────────────────────
@@ -766,12 +768,15 @@ function Chat() {
   );
 }
 
-function getView(): "chat" | "admin" {
-  return window.location.pathname === "/admin" ? "admin" : "chat";
+function getView(): "chat" | "admin" | "demo" {
+  const path = window.location.pathname;
+  if (path === "/admin") return "admin";
+  if (path === "/demo") return "demo";
+  return "chat";
 }
 
 export default function App() {
-  const [view, setView] = useState<"chat" | "admin">(getView);
+  const [view, setView] = useState<"chat" | "admin" | "demo">(getView);
 
   useEffect(() => {
     const onPopState = () => setView(getView());
@@ -781,6 +786,7 @@ export default function App() {
 
   useEffect(() => {
     const key = view === "chat" ? "theme:patient" : "theme:caretaker";
+    if (view === "demo") return; // demo uses caretaker theme
     const stored = localStorage.getItem(key);
     const mode = stored === "dark" || stored === "light" ? stored : "light";
     document.documentElement.setAttribute("data-mode", mode);
@@ -813,6 +819,17 @@ export default function App() {
         >
           Admin
         </Button>
+        <Button
+          size="sm"
+          variant={view === "demo" ? "primary" : "ghost"}
+          onClick={() => {
+            history.pushState(null, "", "/demo");
+            setView("demo");
+          }}
+          icon={<PlayIcon size={14} />}
+        >
+          Demo
+        </Button>
       </div>
       <Suspense
         fallback={
@@ -821,7 +838,13 @@ export default function App() {
           </div>
         }
       >
-        {view === "chat" ? <Chat /> : <AdminDashboard />}
+        {view === "chat" ? (
+          <Chat />
+        ) : view === "admin" ? (
+          <AdminDashboard />
+        ) : (
+          <DemoPage />
+        )}
       </Suspense>
     </Toasty>
   );

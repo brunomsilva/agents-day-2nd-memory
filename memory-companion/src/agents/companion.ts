@@ -1,6 +1,6 @@
 import { AIChatAgent, type OnChatMessageOptions } from "@cloudflare/ai-chat";
 import { callable } from "agents";
-import { createWorkersAI } from "workers-ai-provider";
+import { createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
   generateText,
@@ -113,11 +113,11 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
   }
 
   async onChatMessage(_onFinish: unknown, _options?: OnChatMessageOptions) {
-    const workersai = createWorkersAI({
-      binding: this.env.AI,
-      gateway: { id: "agent-day" }
+    const kimi = createOpenAI({
+      apiKey: this.env.KIMI_API_KEY,
+      baseURL: "https://api.moonshot.ai/v1"
     });
-    const model = workersai("@cf/moonshotai/kimi-k2.6");
+    const model = kimi.chat("kimi-k2.6");
 
     const lastMessage = this.messages[this.messages.length - 1];
     const userText =
@@ -251,7 +251,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   private async handleOnboardingMessage(
     userText: string,
-    model: ReturnType<ReturnType<typeof createWorkersAI>>
+    model: ReturnType<ReturnType<typeof createOpenAI>>
   ): Promise<Response> {
     const step = this.state.onboardingStep;
     const sys = buildOnboardingPrompt();
@@ -354,7 +354,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   private async extractAndStoreMemory(
     text: string,
-    model: ReturnType<ReturnType<typeof createWorkersAI>>
+    model: ReturnType<ReturnType<typeof createOpenAI>>
   ) {
     if (!text.trim()) return;
     await generateText({
@@ -1062,6 +1062,70 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       ).cancelSchedule(rows[0].schedule_id);
     }
     await this.sql`DELETE FROM reminders WHERE id = ${id}`;
+  }
+
+  @callable()
+  async resetDemoData(): Promise<void> {
+    // Clear all data
+    await this.sql`DELETE FROM profile`;
+    await this.sql`DELETE FROM people`;
+    await this.sql`DELETE FROM events`;
+    await this.sql`DELETE FROM routines`;
+    await this.sql`DELETE FROM medication_logs`;
+    await this.sql`DELETE FROM medications`;
+    await this.sql`DELETE FROM caregiver_links`;
+    await this.sql`DELETE FROM reminders`;
+
+    // Clear medication and reminder schedules
+    for (const s of this.getSchedules()) {
+      if (
+        s.callback === "medicationReminder" ||
+        s.callback === "medicationFollowUp" ||
+        s.callback === "reminderFired"
+      ) {
+        this.cancelSchedule(s.id);
+      }
+    }
+
+    // Insert demo seed data
+    await this
+      .sql`INSERT INTO profile (name, age, city, timezone, notes, setup_complete)
+      VALUES (${"Jane Doe"}, 78, ${"Porto"}, ${"Europe/Lisbon"}, ${"Retired librarian, loves gardening"}, 1)`;
+    await this
+      .sql`INSERT INTO people (name, relationship, notes, phone, email, address)
+      VALUES (${"Dr. Ana Silva"}, ${"doctor"}, ${"Family physician at Centro de Saúde Porto"}, ${"+351 220 000 001"}, ${"dr.silva@csporto.pt"}, ${"Rua de Cedofeita 123, Porto"})`;
+    await this
+      .sql`INSERT INTO people (name, relationship, notes, phone, email, address)
+      VALUES (${"Maria Santos"}, ${"daughter"}, ${"Lives nearby in Matosinhos, visits every Sunday"}, ${"+351 910 000 002"}, ${"maria.santos@email.pt"}, ${"Rua Heróis de França 45, Matosinhos"})`;
+    await this
+      .sql`INSERT INTO people (name, relationship, notes, phone, email, address)
+      VALUES (${"José Ferreira"}, ${"son"}, ${"Works in Lisbon, calls every Wednesday"}, ${"+351 910 000 003"}, ${"jose.ferreira@email.pt"}, ${"Av. da Liberdade 88, Lisboa"})`;
+    await this
+      .sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber, active)
+      VALUES (${"Lisinopril"}, ${"10mg, 1 tablet"}, ${"08:00"}, ${"Take with breakfast"}, ${"Dr. Ana Silva"}, 1)`;
+    await this
+      .sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber, active)
+      VALUES (${"Metformin"}, ${"500mg, 1 tablet"}, ${"08:00,20:00"}, ${"Take with meals"}, ${"Dr. Ana Silva"}, 1)`;
+    await this
+      .sql`INSERT INTO routines (name, type, scheduled_time, days, description, active)
+      VALUES (${"Morning walk"}, ${"routine"}, ${"07:00"}, ${"daily"}, ${"Walk along the Douro river for 30 minutes"}, 1)`;
+    await this
+      .sql`INSERT INTO routines (name, type, scheduled_time, days, description, active)
+      VALUES (${"Lunch with Maria"}, ${"appointment"}, ${"12:30"}, ${"sun"}, ${"Weekly lunch at Maria's house"}, 1)`;
+    await this
+      .sql`INSERT INTO reminders (label, type, schedule_id, scheduled_for, recurrence, active)
+      VALUES (${"Drink water"}, ${"recurring"}, ${"demo-reminder-1"}, null, ${"days:mon,tue,wed,thu,fri,sat,sun time:10:00"}, 1)`;
+    await this.sql`INSERT INTO events (occurred_on, description, type, source)
+      VALUES (date('now', '-2 days'), ${"Maria visited and brought fresh pasteis de nata"}, ${"event"}, ${"user"})`;
+    await this.sql`INSERT INTO events (occurred_on, description, type, source)
+      VALUES (date('now', '-1 days'), ${"Morning mood: calm and happy after the walk"}, ${"mood"}, ${"system"})`;
+
+    this.setState({
+      ...this.state,
+      setupComplete: true,
+      onboardingStep: "done",
+      notifications: []
+    });
   }
 
   @callable()
