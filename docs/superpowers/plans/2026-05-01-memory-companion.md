@@ -34,13 +34,25 @@
 | `vitest.config.ts` | Vitest config |
 | `scripts/seed.ts` | Demo seed SQL generator |
 
-## Implementation Notes
+## Implementation Notes — Verified Against Actual Template
 
-> **Model availability:** `@cf/moonshotai/kimi-k2.6` is not listed in the Workers AI catalog at time of writing. Verify at `dash.cloudflare.com` → Workers AI → Models before starting. If unavailable, use `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (listed, capable) or switch to the Anthropic provider (`createAnthropic` + `ANTHROPIC_API_KEY` secret).
+> **Correct imports (verified from template):**
+> - `AIChatAgent`, `OnChatMessageOptions` → from `"@cloudflare/ai-chat"` (NOT `"agents/ai-chat"`)
+> - `useAgentChat` → from `"@cloudflare/ai-chat/react"` (NOT `"agents/ai-react"`)
+> - `callable`, `routeAgentRequest`, `Agent` → from `"agents"`
+> - `streamText`, `generateText`, `convertToModelMessages`, `tool` → from `"ai"`
+
+> **Tool schema API (AI SDK v6):** Use `inputSchema:` not `parameters:` in all `tool({...})` definitions.
+
+> **`onChatMessage` signature:** `async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions)`
+
+> **Model confirmed available:** `@cf/moonshotai/kimi-k2.6` is already used in the starter template — no need to switch providers.
+
+> **`this.schedule()` — no `await`:** The template calls `this.schedule()` without await. Same for `this.getSchedules()` and `this.cancelSchedule()`. These may return values but are called fire-and-forget in the template.
 
 > **SQL writes need `await`:** All `this.sql\`INSERT...\`` and `this.sql\`UPDATE...\`` calls must be awaited. Reads (`SELECT`) do not need await and return a synchronous iterable.
 
-> **`@callable()` requires TC39 decorators:** Do NOT add `"experimentalDecorators": true` to `tsconfig.json` — it breaks the standard decorators used by `@callable()`. The agents starter template already has the correct config.
+> **`@callable()` requires TC39 decorators:** Do NOT add `"experimentalDecorators": true` to `tsconfig.json` — the starter `tsconfig.json` extends `agents/tsconfig` which has the correct config.
 
 > **DDL via `this.sql`:** DDL statements must be written as inline tagged template literals (`await this.sql\`CREATE TABLE...\``). Passing raw strings to `this.sql` as a cast does not work.
 
@@ -776,14 +788,14 @@ git commit -m "feat: add system prompt builders"
 ```typescript
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { AIChatAgent } from 'agents/ai-chat';
+import type { AIChatAgent } from '@cloudflare/ai-chat';
 import type { Env } from '../server';
 
 export function makeRetrievalTools(agent: AIChatAgent<Env>) {
   return {
     lookupPerson: tool({
       description: 'Look up a specific person by name. Call when the user asks about someone.',
-      parameters: z.object({ name: z.string() }),
+      inputSchema: z.object({ name: z.string() }),
       execute: async ({ name }) => {
         const rows = agent.sql<{
           id: number; name: string; relationship: string | null;
@@ -799,7 +811,7 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
 
     getRecentEvents: tool({
       description: 'Get events logged in recent days. Call when asked what happened recently or on a specific day.',
-      parameters: z.object({ days: z.number().default(3) }),
+      inputSchema: z.object({ days: z.number().default(3) }),
       execute: async ({ days }) => {
         const cutoff = new Date(Date.now() - days * 86_400_000).toISOString().split('T')[0];
         const events = agent.sql<{ occurred_on: string; description: string }>`
@@ -817,7 +829,7 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
 
     getTodaySchedule: tool({
       description: "Get today's routines, appointments, and medications. Call when asked about today's plan.",
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const today = new Date().toISOString().split('T')[0];
         const dayName = new Date().toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
@@ -838,7 +850,7 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
 
     getMedications: tool({
       description: "Get the user's medications and today's status for each.",
-      parameters: z.object({}),
+      inputSchema: z.object({}),
       execute: async () => {
         const today = new Date().toISOString().split('T')[0];
         const results = agent.sql<{
@@ -878,7 +890,7 @@ git commit -m "feat: add fact retrieval tools"
 ```typescript
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { AIChatAgent } from 'agents/ai-chat';
+import type { AIChatAgent } from '@cloudflare/ai-chat';
 import type { CompanionState } from '../types';
 import type { Env } from '../server';
 
@@ -886,7 +898,7 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
   return {
     addPerson: tool({
       description: 'Store a new person the user mentioned.',
-      parameters: z.object({
+      inputSchema: z.object({
         name: z.string(),
         relationship: z.string().optional(),
         notes: z.string().optional(),
@@ -912,7 +924,7 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
 
     addEvent: tool({
       description: 'Log something that happened.',
-      parameters: z.object({
+      inputSchema: z.object({
         description: z.string(),
         occurred_on: z.string().describe('ISO date YYYY-MM-DD, default to today if not specified'),
       }),
@@ -925,7 +937,7 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
 
     saveProfile: tool({
       description: 'Save a profile field: name, city, timezone, age, or notes.',
-      parameters: z.object({
+      inputSchema: z.object({
         field: z.enum(['name', 'city', 'timezone', 'age', 'notes']),
         value: z.string(),
       }),
@@ -945,7 +957,7 @@ export function makeExtractionTools(agent: AIChatAgent<Env, CompanionState>) {
 
     addMedication: tool({
       description: 'Store a medication the user takes.',
-      parameters: z.object({
+      inputSchema: z.object({
         name: z.string(),
         dosage: z.string().optional(),
         scheduled_times: z.string().describe('Comma-separated times e.g. "08:00" or "08:00,20:00"'),
@@ -995,7 +1007,7 @@ export class CaregiverAgent extends Agent<Env, CaregiverState> {
 - [ ] **Step 2: Create `src/agents/companion.ts`**
 
 ```typescript
-import { AIChatAgent } from 'agents/ai-chat';
+import { AIChatAgent, type OnChatMessageOptions } from '@cloudflare/ai-chat';
 import { callable } from 'agents';
 import { createWorkersAI } from 'workers-ai-provider';
 import { streamText, generateText, convertToModelMessages } from 'ai';
@@ -1047,7 +1059,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     }
   }
 
-  async onChatMessage() {
+  async onChatMessage(_onFinish: unknown, options?: OnChatMessageOptions) {
     const workersai = createWorkersAI({ binding: this.env.AI });
     const model = workersai('@cf/moonshotai/kimi-k2.6');
 
@@ -1746,7 +1758,7 @@ At the top of `src/app.tsx`, ensure these imports exist (add if missing):
 
 ```typescript
 import { useAgent } from 'agents/react';
-import { useAgentChat } from 'agents/ai-react'; // useAgentChat lives in agents/ai-react
+import { useAgentChat } from '@cloudflare/ai-chat/react';
 import type { CompanionState, Notification } from './types';
 ```
 
