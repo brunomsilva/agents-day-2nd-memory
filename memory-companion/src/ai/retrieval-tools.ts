@@ -2,6 +2,27 @@ import { tool } from "ai";
 import { z } from "zod";
 import type { AIChatAgent } from "@cloudflare/ai-chat";
 
+const DAY_TO_CRON: Record<string, number> = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6
+};
+
+function recurringToCron(days: string[], time: string): string {
+  const [hourStr, minuteStr] = time.split(":");
+  const hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr, 10);
+  const dayNums = days
+    .map((d) => DAY_TO_CRON[d.toLowerCase()] ?? 0)
+    .sort((a, b) => a - b)
+    .join(",");
+  return `${minute} ${hour} * * ${dayNums}`;
+}
+
 export function makeRetrievalTools(agent: AIChatAgent<Env>) {
   return {
     lookupPerson: tool({
@@ -123,6 +144,125 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
           return { found: false, message: "No medications recorded." };
         }
         return { found: true, medications: results };
+      }
+    }),
+
+    setReminder: tool({
+      description:
+        "Set a reminder for the user. Provide datetime (ISO 8601) for one-time reminders, or recurring (days + time) for repeating ones.",
+      inputSchema: z.object({
+        label: z.string().describe("What to remind about, e.g. 'call John'"),
+        datetime: z
+          .string()
+          .optional()
+          .describe(
+            "ISO 8601 local datetime for a one-time reminder, e.g. 2026-05-02T15:00:00"
+          ),
+        recurring: z
+          .object({
+            days: z
+              .array(z.string())
+              .describe("Day names, e.g. ['monday', 'wednesday']"),
+            time: z.string().describe("HH:MM 24-hour time, e.g. 15:00")
+          })
+          .optional()
+          .describe("For a recurring reminder")
+      }),
+      execute: async ({ label, datetime, recurring }) => {
+        if (!datetime && !recurring) {
+          return {
+            error: "Please provide either a date/time or a recurrence pattern."
+          };
+        }
+
+        const isOnce = !!datetime;
+        const type = isOnce ? "once" : "recurring";
+        const recurrenceStr =
+          !isOnce && recurring
+            ? `days:${recurring.days.map((d) => d.slice(0, 3).toLowerCase()).join(",")} time:${recurring.time}`
+            : null;
+
+        // INSERT with placeholder — we need the row id before scheduling
+        await agent.sql`
+          INSERT INTO reminders (label, type, schedule_id, scheduled_for, recurrence)
+          VALUES (${label}, ${type}, ${"__pending__"}, ${datetime ?? null}, ${recurrenceStr})`;
+
+        const [row] = agent.sql<{
+          id: number;
+        }>`SELECT last_insert_rowid() as id`;
+        const reminderId = row.id;
+
+        const scheduleArg = isOnce
+          ? new Date(datetime as string)
+          : recurringToCron(recurring!.days, recurring!.time);
+
+        // oxlint-disable-next-line typescript-eslint/no-explicit-any
+        const schedule = (agent as any).schedule(scheduleArg, "reminderFired", {
+          reminderId
+        });
+
+        await agent.sql`
+          UPDATE reminders SET schedule_id = ${schedule.id} WHERE id = ${reminderId}`;
+
+        if (isOnce) {
+          return `Reminder set: "${label}" on ${new Date(datetime as string).toLocaleString("en-GB")}.`;
+        }
+        return `Reminder set: "${label}" every ${recurring!.days.join(", ")} at ${recurring!.time}.`;
+      }
+    }),
+
+    listReminders: tool({
+      description: "List the user's active reminders with their IDs.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const rows = agent.sql<{
+          id: number;
+          label: string;
+          type: string;
+          scheduled_for: string | null;
+          recurrence: string | null;
+        }>`SELECT id, label, type, scheduled_for, recurrence FROM reminders WHERE active = 1`;
+
+        if (rows.length === 0) return "You have no active reminders.";
+
+        return rows
+          .map(
+            (
+              r: {
+                id: number;
+                label: string;
+                type: string;
+                scheduled_for: string | null;
+                recurrence: string | null;
+              },
+              i: number
+            ) => {
+              const when =
+                r.type === "once"
+                  ? `on ${new Date(r.scheduled_for!).toLocaleString("en-GB")}`
+                  : `recurring (${r.recurrence})`;
+              return `${i + 1}. [ID ${r.id}] "${r.label}" — ${when}`;
+            }
+          )
+          .join("\n");
+      }
+    }),
+
+    cancelReminder: tool({
+      description:
+        "Cancel an active reminder by its ID. Use listReminders first to get the ID.",
+      inputSchema: z.object({
+        id: z.number().describe("The reminder ID shown by listReminders")
+      }),
+      execute: async ({ id }) => {
+        const rows = agent.sql<{ id: number; schedule_id: string }>`
+          SELECT id, schedule_id FROM reminders WHERE id = ${id} AND active = 1`;
+        if (rows.length === 0) return "No active reminder found with that ID.";
+
+        // oxlint-disable-next-line typescript-eslint/no-explicit-any
+        (agent as any).cancelSchedule(rows[0].schedule_id);
+        await agent.sql`UPDATE reminders SET active = 0 WHERE id = ${id}`;
+        return `Reminder cancelled.`;
       }
     })
   };
