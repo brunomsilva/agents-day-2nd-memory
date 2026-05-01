@@ -13,6 +13,7 @@ import {
   Switch,
   Text
 } from "@cloudflare/kumo";
+import { AdminDashboard } from "./admin";
 import { Toasty, useKumoToastManager } from "@cloudflare/kumo/components/toast";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
@@ -760,9 +761,31 @@ function Chat() {
   );
 }
 
+type AppView = "chat" | "admin";
+
 export default function App() {
+  const [view, setView] = useState<AppView>("chat");
   return (
     <Toasty>
+      {/* View switcher — fixed top-right, z-50 so it floats above both views */}
+      <div className="fixed top-3 right-20 z-50 flex gap-1 bg-kumo-base border border-kumo-line rounded-lg p-1 shadow-sm">
+        <Button
+          size="sm"
+          variant={view === "chat" ? "primary" : "ghost"}
+          onClick={() => setView("chat")}
+          icon={<ChatCircleDotsIcon size={14} />}
+        >
+          Chat
+        </Button>
+        <Button
+          size="sm"
+          variant={view === "admin" ? "primary" : "ghost"}
+          onClick={() => setView("admin")}
+          icon={<GearIcon size={14} />}
+        >
+          Admin
+        </Button>
+      </div>
       <Suspense
         fallback={
           <div className="flex items-center justify-center h-screen text-kumo-inactive">
@@ -770,7 +793,7 @@ export default function App() {
           </div>
         }
       >
-        <Chat />
+        {view === "chat" ? <Chat /> : <AdminDashboard />}
       </Suspense>
     </Toasty>
   );

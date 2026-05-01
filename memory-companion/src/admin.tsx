@@ -43,7 +43,7 @@ const TABS: { key: Tab; label: string; icon: ReactNode }[] = [
   { key: "medlogs", label: "Med Logs", icon: <ClipboardTextIcon size={14} /> }
 ];
 
-export default function AdminDashboard() {
+export function AdminDashboard() {
   const [connected, setConnected] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [loading, setLoading] = useState(false);
