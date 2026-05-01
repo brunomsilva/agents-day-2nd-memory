@@ -85,12 +85,17 @@ export type MedicationLog = {
   source: "user" | "caregiver";
 };
 
+export type MoodEntry = {
+  mood: string;
+  date: string;
+};
+
 export type WeeklySummaryPayload = {
   profileName: string;
   weekStart: string;
   weekEnd: string;
   medicationAdherence: MedicationAdherence[];
-  moods: string[];
+  moods: MoodEntry[];
   events: Event[];
   helpRequests: number;
 };

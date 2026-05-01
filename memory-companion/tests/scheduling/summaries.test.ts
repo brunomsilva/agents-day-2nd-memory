@@ -34,7 +34,11 @@ describe("formatWeeklySummary", () => {
   it("shows mood summary with counts", () => {
     const result = formatWeeklySummary({
       ...base,
-      moods: ["good", "good", "not_great"]
+      moods: [
+        { mood: "good", date: "2026-04-29" },
+        { mood: "good", date: "2026-04-30" },
+        { mood: "not_great", date: "2026-05-01" }
+      ]
     });
     expect(result).toContain("good");
     expect(result).toContain("2x");

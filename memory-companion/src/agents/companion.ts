@@ -641,12 +641,13 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       medMap[row.name].total += row.count;
     }
 
-    const moodRows = this.sql<{ description: string }>`
-      SELECT description FROM events
+    const moodRows = this.sql<{ description: string; occurred_on: string }>`
+      SELECT description, occurred_on FROM events
       WHERE type = 'mood' AND occurred_on >= ${weekAgo}`;
-    const moods = moodRows.map((r) =>
-      r.description.replace("Morning mood: ", "")
-    );
+    const moods = moodRows.map((r) => ({
+      mood: r.description.replace("Morning mood: ", ""),
+      date: r.occurred_on
+    }));
 
     const events = this.sql<Event>`
       SELECT * FROM events
@@ -711,12 +712,13 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       medMap[row.name].total += row.count;
     }
 
-    const moodRows = this.sql<{ description: string }>`
-      SELECT description FROM events
+    const moodRows = this.sql<{ description: string; occurred_on: string }>`
+      SELECT description, occurred_on FROM events
       WHERE type = 'mood' AND occurred_on >= ${weekAgo}`;
-    const moods = moodRows.map((r) =>
-      r.description.replace("Morning mood: ", "")
-    );
+    const moods = moodRows.map((r) => ({
+      mood: r.description.replace("Morning mood: ", ""),
+      date: r.occurred_on
+    }));
 
     const events = this.sql<Event>`
       SELECT * FROM events

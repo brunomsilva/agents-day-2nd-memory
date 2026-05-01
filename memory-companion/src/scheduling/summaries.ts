@@ -20,7 +20,7 @@ export function formatWeeklySummary(payload: WeeklySummaryPayload): string {
   if (payload.moods.length > 0) {
     const moodCounts = payload.moods.reduce<Record<string, number>>(
       (acc, m) => {
-        acc[m] = (acc[m] ?? 0) + 1;
+        acc[m.mood] = (acc[m.mood] ?? 0) + 1;
         return acc;
       },
       {}

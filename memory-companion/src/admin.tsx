@@ -1370,9 +1370,10 @@ export function AdminDashboard() {
                     </Text>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {summaryData.moods.map((mood, i) => (
+                      {summaryData.moods.map((entry, i) => (
                         <Badge key={i} variant="secondary">
-                          {mood}
+                          {entry.mood}{" "}
+                          <span className="opacity-60">({entry.date})</span>
                         </Badge>
                       ))}
                     </div>
