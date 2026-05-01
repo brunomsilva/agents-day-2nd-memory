@@ -646,31 +646,49 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     const url = new URL(request.url);
 
     if (url.pathname.endsWith("/seed")) {
+      // Clear existing data
+      await this.sql`DELETE FROM profile`;
+      await this.sql`DELETE FROM people`;
+      await this.sql`DELETE FROM events`;
+      await this.sql`DELETE FROM routines`;
+      await this.sql`DELETE FROM medication_logs`;
+      await this.sql`DELETE FROM medications`;
+      await this.sql`DELETE FROM caregiver_links`;
+
+      // Clear medication reminder schedules (keep briefing/checkin)
+      for (const s of this.getSchedules()) {
+        if (s.callback === "medicationReminder" || s.callback === "medicationFollowUp") {
+          this.cancelSchedule(s.id);
+        }
+      }
+
+      // Insert fresh seed data
       await this
-        .sql`INSERT OR IGNORE INTO profile (name, age, city, timezone, notes, setup_complete)
-                     VALUES ('Dori', 78, 'Sydney', 'Australia/Sydney', 'Friendly and forgetful, loves swimming', 1)`;
+        .sql`INSERT INTO profile (name, age, city, timezone, notes, setup_complete)
+                     VALUES ('Jane Doe', 78, 'Porto', 'Europe/Lisbon', 'Retired librarian, loves gardening', 1)`;
       await this
-        .sql`INSERT OR IGNORE INTO people (name, relationship, notes, phone) VALUES
-                     ('Nemo', 'friend', 'Brave little clownfish, loves adventures', null)`;
+        .sql`INSERT INTO people (name, relationship, notes, phone) VALUES
+                     ('John Doe', 'son', 'Lives nearby, visits on weekends', null)`;
       await this
-        .sql`INSERT OR IGNORE INTO people (name, relationship, notes, phone) VALUES
-                     ('Marlin', 'father', 'Caring and protective father', null)`;
+        .sql`INSERT INTO people (name, relationship, notes, phone) VALUES
+                     ('James Doe', 'father', 'Lives in the countryside', null)`;
       await this
-        .sql`INSERT OR IGNORE INTO medications (name, dosage, scheduled_times, instructions, prescriber) VALUES
-                     ('Algae Chips', '1 handful', '08:00', 'take with breakfast', 'Marlin')`;
+        .sql`INSERT INTO medications (name, dosage, scheduled_times, instructions, prescriber) VALUES
+                     ('Aspirin', '100mg, 1 tablet', '08:00', 'take with breakfast', 'Dr. Smith')`;
       await this
-        .sql`INSERT OR IGNORE INTO routines (name, type, scheduled_time, days, description) VALUES
-                     ('Swim around the reef', 'routine', '10:00', 'daily', 'Great Barrier Reef')`;
+        .sql`INSERT INTO routines (name, type, scheduled_time, days, description) VALUES
+                     ('Beach Foz', 'routine', '10:00', 'daily', 'Praia da Foz')`;
       await this
-        .sql`INSERT OR IGNORE INTO events (occurred_on, description, type, source) VALUES
-                     (date('now', '-1 days'), 'Nemo visited for a swim in the afternoon', 'event', 'user')`;
+        .sql`INSERT INTO events (occurred_on, description, type, source) VALUES
+                     (date('now', '-1 days'), 'John visited for coffee in the afternoon', 'event', 'user')`;
       this.setState({
         ...this.state,
         setupComplete: true,
-        onboardingStep: "done"
+        onboardingStep: "done",
+        notifications: []
       });
       this.scheduleMedicationReminders();
-      return new Response("Seeded", { status: 200 });
+      return new Response("Reseeded", { status: 200 });
     }
 
     if (url.pathname.endsWith("/briefing")) {

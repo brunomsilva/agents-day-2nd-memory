@@ -496,7 +496,7 @@ function Chat() {
                 <div className="flex flex-wrap justify-center gap-2">
                   {[
                     "What's today?",
-                    "Who is Maria?",
+                    "Who is John?",
                     "What medications do I take?",
                     "How have I been feeling this week?"
                   ].map((prompt) => (

@@ -8,19 +8,19 @@ import {
 describe("buildCompanionPrompt", () => {
   it("includes name, city and date", () => {
     const prompt = buildCompanionPrompt(
-      "Dori",
-      "Sydney",
+      "Jane Doe",
+      "Porto",
       "Thursday, 1 May 2026"
     );
-    expect(prompt).toContain("Dori");
-    expect(prompt).toContain("Sydney");
+    expect(prompt).toContain("Jane Doe");
+    expect(prompt).toContain("Porto");
     expect(prompt).toContain("Thursday, 1 May 2026");
   });
 
   it("includes no-hallucination rules", () => {
     const prompt = buildCompanionPrompt(
-      "Dori",
-      "Sydney",
+      "Jane Doe",
+      "Porto",
       "Thursday, 1 May 2026"
     );
     expect(prompt).toContain("NO knowledge");
@@ -29,8 +29,8 @@ describe("buildCompanionPrompt", () => {
 
   it("does not contain unfilled placeholders", () => {
     const prompt = buildCompanionPrompt(
-      "Dori",
-      "Sydney",
+      "Jane Doe",
+      "Porto",
       "Thursday, 1 May 2026"
     );
     expect(prompt).not.toContain("{name}");
