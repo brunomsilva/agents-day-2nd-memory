@@ -477,6 +477,7 @@ function Chat() {
                       n.id
                     );
                   } else {
+                    // covers "reminder", "checkin", and any future types
                     await agent.stub.dismissNotification(n.id);
                   }
                 }}
