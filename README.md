@@ -9,11 +9,9 @@ Memory Companion bridges the gap between patients experiencing early memory loss
 
 **For the patient**, Mia provides a simple chat interface where they can ask about their day, receive medication reminders, set routines, and talk through moments of confusion. Every answer is grounded in facts stored in SQLite — if Mia doesn't know something, she says so rather than guessing.
 
-**For the caregiver**, the admin dashboard offers complete visibility and control over the patient's data: profile, people, events, routines, medications, and medication adherence logs.
+![Patient chat interface](assets/patient.png)
 
-| Patient chat | Caregiver admin |
-|:--|:--|
-| ![Patient chat interface](assets/patient.png) | ![Caregiver admin dashboard](assets/caretaker.png) |
+**For the caregiver**, the admin dashboard offers complete visibility and control over the patient's data: profile, people, events, routines, medications, and medication adherence logs.
 
 ## Quick links
 
@@ -23,6 +21,8 @@ Memory Companion bridges the gap between patients experiencing early memory loss
 | **Slide deck** (PDF) | [`mia-pitch-deck.pdf`](./mia-pitch-deck.pdf) |
 | **Demo** | [`/demo`](http://localhost:5173/demo) — run `npm run dev` and open |
 | **Admin dashboard** | [`/admin`](http://localhost:5173/admin) — full CRUD on all SQLite tables |
+
+![Caregiver admin dashboard](assets/caretaker.png)
 
 ## Architecture
 
