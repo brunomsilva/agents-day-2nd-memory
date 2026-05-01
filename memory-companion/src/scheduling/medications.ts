@@ -1,13 +1,18 @@
-import type { Medication } from '../types';
+import type { Medication } from "../types";
 
 export function parseMedicationTimes(scheduled_times: string): string[] {
-  return scheduled_times.split(',').map(t => t.trim()).filter(Boolean);
+  return scheduled_times
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
 }
 
 export function buildMedicationReminderText(med: Medication): string {
-  const dose = med.dosage ? ` (${med.dosage})` : '';
-  const prescriber = med.prescriber ? ` Dr. ${med.prescriber} prescribed this.` : '';
-  const instruction = med.instructions ? `\n${med.instructions}.` : '';
+  const dose = med.dosage ? ` (${med.dosage})` : "";
+  const prescriber = med.prescriber
+    ? ` Dr. ${med.prescriber} prescribed this.`
+    : "";
+  const instruction = med.instructions ? `\n${med.instructions}.` : "";
   return `Time for your ${med.name}${dose}. 💊${prescriber}${instruction}`;
 }
 

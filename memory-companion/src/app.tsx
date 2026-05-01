@@ -218,7 +218,7 @@ function ToolPartView({
 
 function NotificationCard({
   notification,
-  onAction,
+  onAction
 }: {
   notification: Notification;
   onAction: (action: string) => void;
@@ -229,7 +229,7 @@ function NotificationCard({
         {notification.text}
       </p>
       <div className="flex flex-wrap gap-2">
-        {notification.actions.map(action => (
+        {notification.actions.map((action) => (
           <Button
             key={action.value}
             variant="primary"
@@ -240,7 +240,11 @@ function NotificationCard({
           </Button>
         ))}
         {notification.actions.length === 0 && (
-          <Button variant="secondary" size="sm" onClick={() => onAction('dismiss')}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onAction("dismiss")}
+          >
             Dismiss
           </Button>
         )}
@@ -297,7 +301,7 @@ function Chat() {
     stop,
     status
   } = useAgentChat({
-    agent,
+    agent
   });
 
   const isStreaming = status === "streaming" || status === "submitted";
@@ -455,19 +459,19 @@ function Chat() {
       {(agent.state?.notifications?.length ?? 0) > 0 && (
         <div className="border-b border-kumo-line px-5 py-3 max-h-64 overflow-y-auto">
           <div className="max-w-3xl mx-auto">
-            {agent.state!.notifications.map(n => (
+            {agent.state!.notifications.map((n) => (
               <NotificationCard
                 key={n.id}
                 notification={n}
                 onAction={async (actionValue) => {
-                  if (n.type === 'briefing') {
+                  if (n.type === "briefing") {
                     await agent.stub.recordMood(actionValue, n.id);
-                  } else if (n.type === 'medication') {
+                  } else if (n.type === "medication") {
                     await agent.stub.acknowledgeMedication(
                       n.medicationId ?? 0,
                       n.logId ?? 0,
                       actionValue,
-                      n.id,
+                      n.id
                     );
                   } else {
                     await agent.stub.dismissNotification(n.id);

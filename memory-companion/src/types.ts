@@ -1,4 +1,10 @@
-export type OnboardingStep = 'name' | 'city' | 'timezone' | 'person' | 'medication' | 'done';
+export type OnboardingStep =
+  | "name"
+  | "city"
+  | "timezone"
+  | "person"
+  | "medication"
+  | "done";
 
 export type CompanionState = {
   setupComplete: boolean;
@@ -9,7 +15,7 @@ export type CompanionState = {
 
 export type Notification = {
   id: string;
-  type: 'briefing' | 'medication' | 'checkin';
+  type: "briefing" | "medication" | "checkin";
   text: string;
   timestamp: string;
   medicationId?: number;
@@ -44,14 +50,14 @@ export type Event = {
   id: number;
   occurred_on: string;
   description: string;
-  type: 'event' | 'mood' | 'help_request' | 'system';
-  source: 'user' | 'caregiver' | 'system';
+  type: "event" | "mood" | "help_request" | "system";
+  source: "user" | "caregiver" | "system";
 };
 
 export type Routine = {
   id: number;
   name: string;
-  type: 'routine' | 'appointment' | 'task';
+  type: "routine" | "appointment" | "task";
   scheduled_time: string | null;
   days: string | null;
   description: string | null;
@@ -72,9 +78,9 @@ export type MedicationLog = {
   id: number;
   medication_id: number;
   scheduled_for: string;
-  status: 'taken' | 'skipped' | 'pending' | 'no_response';
+  status: "taken" | "skipped" | "pending" | "no_response";
   responded_at: string | null;
-  source: 'user' | 'caregiver';
+  source: "user" | "caregiver";
 };
 
 export type WeeklySummaryPayload = {

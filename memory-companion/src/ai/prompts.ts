@@ -1,4 +1,8 @@
-export function buildCompanionPrompt(name: string, city: string, dateStr: string): string {
+export function buildCompanionPrompt(
+  name: string,
+  city: string,
+  dateStr: string
+): string {
   return `You are a gentle, warm memory companion named Mia.
 
 CRITICAL RULES — these override everything:
