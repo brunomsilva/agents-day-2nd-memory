@@ -133,7 +133,6 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       return new Response(card, { headers: { "Content-Type": "text/plain" } });
     }
 
-    const [profile] = this.sql<Profile>`SELECT * FROM profile LIMIT 1`;
     const today = new Date().toLocaleDateString("en-GB", {
       weekday: "long",
       year: "numeric",
@@ -146,11 +145,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
     return streamText({
       model,
       messages: await convertToModelMessages(this.messages),
-      system: buildCompanionPrompt(
-        profile?.name ?? "",
-        profile?.city ?? "",
-        today
-      ),
+      system: buildCompanionPrompt(today),
       tools: makeRetrievalTools(this),
       stopWhen: stepCountIs(3)
     }).toUIMessageStreamResponse();
@@ -657,7 +652,10 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
       // Clear medication reminder schedules (keep briefing/checkin)
       for (const s of this.getSchedules()) {
-        if (s.callback === "medicationReminder" || s.callback === "medicationFollowUp") {
+        if (
+          s.callback === "medicationReminder" ||
+          s.callback === "medicationFollowUp"
+        ) {
           this.cancelSchedule(s.id);
         }
       }

@@ -78,6 +78,28 @@ export function makeRetrievalTools(agent: AIChatAgent<Env>) {
       }
     }),
 
+    getProfile: tool({
+      description:
+        "Get the user's profile: name, age, city, timezone, and notes. Call when asked about identity or personal details.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        const rows = agent.sql<{
+          name: string;
+          age: number | null;
+          city: string;
+          timezone: string;
+          notes: string | null;
+        }>`SELECT name, age, city, timezone, notes FROM profile LIMIT 1`;
+        if (rows.length === 0) {
+          return {
+            found: false,
+            message: "I don't have a profile set up yet."
+          };
+        }
+        return { found: true, ...rows[0] };
+      }
+    }),
+
     getMedications: tool({
       description: "Get the user's medications and today's status for each.",
       inputSchema: z.object({}),

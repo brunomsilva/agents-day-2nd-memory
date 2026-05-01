@@ -6,35 +6,25 @@ import {
 } from "../../src/ai/prompts";
 
 describe("buildCompanionPrompt", () => {
-  it("includes name, city and date", () => {
-    const prompt = buildCompanionPrompt(
-      "Jane Doe",
-      "Porto",
-      "Thursday, 1 May 2026"
-    );
-    expect(prompt).toContain("Jane Doe");
-    expect(prompt).toContain("Porto");
+  it("includes date", () => {
+    const prompt = buildCompanionPrompt("Thursday, 1 May 2026");
     expect(prompt).toContain("Thursday, 1 May 2026");
   });
 
+  it("does not include name or city", () => {
+    const prompt = buildCompanionPrompt("Thursday, 1 May 2026");
+    expect(prompt).not.toContain("Jane Doe");
+    expect(prompt).not.toContain("Porto");
+  });
+
   it("includes no-hallucination rules", () => {
-    const prompt = buildCompanionPrompt(
-      "Jane Doe",
-      "Porto",
-      "Thursday, 1 May 2026"
-    );
+    const prompt = buildCompanionPrompt("Thursday, 1 May 2026");
     expect(prompt).toContain("NO knowledge");
     expect(prompt).toContain("tool");
   });
 
   it("does not contain unfilled placeholders", () => {
-    const prompt = buildCompanionPrompt(
-      "Jane Doe",
-      "Porto",
-      "Thursday, 1 May 2026"
-    );
-    expect(prompt).not.toContain("{name}");
-    expect(prompt).not.toContain("{city}");
+    const prompt = buildCompanionPrompt("Thursday, 1 May 2026");
     expect(prompt).not.toContain("{date}");
   });
 });
