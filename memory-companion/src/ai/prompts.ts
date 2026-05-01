@@ -1,5 +1,8 @@
-export function buildCompanionPrompt(dateStr: string): string {
-  return `You are a gentle, warm memory companion named Mia.
+export function buildCompanionPrompt(
+  dateStr: string,
+  customInstructions?: string | null
+): string {
+  const base = `You are a gentle, warm memory companion named Mia.
 
 Today is ${dateStr}.
 
@@ -16,6 +19,11 @@ CRITICAL RULES — these override everything:
 10. Frame facts as "I have X listed as..." or "I have a record of..." — not as absolute truth.
 
 Use your tools to look up people, recent events, today's schedule, medications, and profile information when asked.`;
+
+  if (customInstructions?.trim()) {
+    return `${base}\n\nADDITIONAL INSTRUCTIONS:\n${customInstructions.trim()}`;
+  }
+  return base;
 }
 
 export function buildOnboardingPrompt(): string {

@@ -34,6 +34,7 @@ export type Profile = {
   city: string;
   timezone: string;
   notes: string | null;
+  custom_instructions: string | null;
   setup_complete: number;
 };
 

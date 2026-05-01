@@ -181,7 +181,8 @@ export function AdminDashboard() {
       age: profile.age,
       city: profile.city,
       timezone: profile.timezone,
-      notes: profile.notes
+      notes: profile.notes,
+      custom_instructions: profile.custom_instructions
     });
     await loadData();
   };
@@ -481,6 +482,24 @@ export function AdminDashboard() {
                 setProfile((p) => (p ? { ...p, notes: e.target.value } : null))
               }
             />
+            <div className="space-y-1">
+              <label
+                htmlFor="custom-instructions"
+                className="text-sm text-kumo-secondary"
+              >
+                Custom Instructions
+              </label>
+              <textarea
+                id="custom-instructions"
+                className="w-full min-h-[100px] bg-kumo-elevated border border-kumo-line rounded-md px-3 py-2 text-sm text-kumo-default focus:outline-none focus:ring-1 focus:ring-kumo-accent resize-y"
+                value={profile?.custom_instructions ?? ""}
+                onChange={(e) =>
+                  setProfile((p) =>
+                    p ? { ...p, custom_instructions: e.target.value } : null
+                  )
+                }
+              />
+            </div>
             <Button
               variant="primary"
               size="sm"
@@ -1275,10 +1294,7 @@ export function AdminDashboard() {
                     </Text>
                   )}
                   {summaryData.medicationAdherence.map((med) => (
-                    <Surface
-                      key={med.name}
-                      className="p-3 space-y-2"
-                    >
+                    <Surface key={med.name} className="p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <Text size="sm" bold>
                           {med.name}

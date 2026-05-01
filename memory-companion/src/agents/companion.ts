@@ -43,9 +43,13 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
   async onStart() {
     await this
-      .sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, setup_complete INTEGER DEFAULT 0)`;
+      .sql`CREATE TABLE IF NOT EXISTS profile (name TEXT, age INTEGER, city TEXT, timezone TEXT DEFAULT 'UTC', notes TEXT, custom_instructions TEXT, setup_complete INTEGER DEFAULT 0)`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, relationship TEXT, notes TEXT, phone TEXT, last_mentioned_at TEXT)`;
+    const profileCols = this.sql<{ name: string }>`PRAGMA table_info(profile)`;
+    const profileColSet = new Set(profileCols.map((c) => c.name));
+    if (!profileColSet.has("custom_instructions"))
+      await this.sql`ALTER TABLE profile ADD COLUMN custom_instructions TEXT`;
     await this
       .sql`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, occurred_on TEXT NOT NULL, description TEXT NOT NULL, type TEXT DEFAULT 'event', source TEXT DEFAULT 'user')`;
     await this
@@ -144,10 +148,12 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
 
     this.extractAndStoreMemory(userText, model).catch(() => {});
 
+    const [profile] = this.sql<Profile>`SELECT * FROM profile LIMIT 1`;
+
     return streamText({
       model,
       messages: await convertToModelMessages(this.messages),
-      system: buildCompanionPrompt(today),
+      system: buildCompanionPrompt(today, profile?.custom_instructions),
       tools: makeRetrievalTools(this),
       stopWhen: stepCountIs(3)
     }).toUIMessageStreamResponse();
@@ -754,6 +760,9 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
       await this.sql`UPDATE profile SET timezone = ${data.timezone}`;
     if (data.notes !== undefined)
       await this.sql`UPDATE profile SET notes = ${data.notes}`;
+    if (data.custom_instructions !== undefined)
+      await this
+        .sql`UPDATE profile SET custom_instructions = ${data.custom_instructions}`;
   }
 
   @callable()
