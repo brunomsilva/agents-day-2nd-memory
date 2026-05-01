@@ -3,6 +3,25 @@
 An AI companion for people with early memory decline, built on Cloudflare Agents.
 Mia remembers people, events, and medications — and never invents facts she wasn't told.
 
+## Quick links
+
+| Resource | Link |
+|----------|------|
+| **Slide deck** (HTML) | [`mia-pitch-deck.html`](./mia-pitch-deck.html) |
+| **Slide deck** (PDF) | [`mia-pitch-deck.pdf`](./mia-pitch-deck.pdf) |
+| **Demo** | [`/demo`](http://localhost:5173/demo) — run `npm run dev` and open |
+| **Admin dashboard** | [`/admin`](http://localhost:5173/admin) — full CRUD on all SQLite tables |
+
+## Architecture
+
+Memory Companion is built on **Cloudflare Agents** — Durable Objects with SQLite storage that run AI inference at the edge. The stack:
+
+- **Cloudflare Workers + Durable Objects** — one `CompanionAgent` per user with persistent SQLite state
+- **Kimi via Anthropic Messages API** — the AI SDK streams responses through the Anthropic adapter (`@ai-sdk/anthropic`) using `claude-sonnet-4-20250514`
+- **Workers AI** — fallback model provider for parallel memory extraction (`@cf/meta/llama-3.3-70b-instruct-fp8-fast`)
+- **Vite + React** — client-side UI with `useAgentChat` for real-time WebSocket chat
+- **Scheduled tasks** — idempotent cron registrations for morning briefings, evening check-ins, and medication reminders with 45-minute follow-ups
+
 ## Quickstart
 
 **Prerequisites:** Node 20+, npm
