@@ -78,7 +78,7 @@ export class CompanionAgent extends AIChatAgent<Env, CompanionState> {
         "https://gateway.ai.cloudflare.com/v1/5a99d972b47766c8ea2134eec49a0902/agent-day/compat",
       apiKey: this.env.KIMI_API_KEY
     });
-    const model = openai.chat("kimi-k2.6");
+    const model = openai("kimi-k2.6");
 
     const lastMessage = this.messages[this.messages.length - 1];
     const userText =
