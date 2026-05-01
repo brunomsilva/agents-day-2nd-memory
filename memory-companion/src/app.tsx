@@ -418,7 +418,7 @@ function Chat() {
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-[22px] font-semibold text-kumo-default">
-              <span className="mr-2">🧠</span>Mia — Memory Companion
+              <span className="mr-2">🧠</span>MIA — Your AI companion
             </h1>
             <Badge variant="secondary">
               <ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
